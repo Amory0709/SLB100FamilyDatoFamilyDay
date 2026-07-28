@@ -25,7 +25,8 @@
      No header bar; container is invisible (size determined by video). */
   #slb-header {
     position: fixed;
-    top: 12px; right: 12px;
+    top: 50%; right: 12px;
+    transform: translateY(-50%);  /* vertical-center on the right edge */
     z-index: 25;
     /* no background, no fixed dimensions — wraps the video tightly */
   }
@@ -35,8 +36,8 @@
   }
   #slb-video {
     display: block;
-    max-height: 320px;          /* ~3.3× the 96px header version — readable on a 1080p screen */
-    max-width: 50vw;
+    max-height: 480px;          /* bumped from 320 → 480 (~1.5× taller) */
+    max-width: 55vw;
     width: auto; height: auto;
     background: transparent;    /* 强制透明 — no black <video> chrome */
     border: 0; border-radius: 0; box-shadow: none; outline: none;
