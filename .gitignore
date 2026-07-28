@@ -1,0 +1,14 @@
+# 临时 / 中间产物
+*.blend
+*.blend1
+*.blend2
+__pycache__/
+*.pyc
+
+# 编辑器 & 系统
+.DS_Store
+.vscode/
+.idea/
+
+# 大文件（已经在 zip 里）
+# piattaforma_white.glb 留作主分支一份；.zip 是网页分发用
