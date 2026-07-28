@@ -43,6 +43,8 @@
   }
   #slb-video {
     display: block;
+    position: relative;         /* sit on top of the absolutely-positioned #slb-video-bg */
+    z-index: 1;
     max-height: 480px;          /* bumped from 320 → 480 (~1.5× taller) */
     max-width: 55vw;
     width: auto; height: auto;
