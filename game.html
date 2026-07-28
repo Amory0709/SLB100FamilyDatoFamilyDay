@@ -231,7 +231,7 @@ const params = {
   videoMaxWidth: 55,  // % of viewport width — caps the video's width regardless of aspect
   videoBgColor: 'rgb(0, 20, 200)',  // solid color shown through the video's transparent pixels
   autoRotate: true,                // OrbitControls.autoRotate — turntable orbit of the rig
-  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoPlacement(); applyVideoBg(); controls.autoRotate = params.autoRotate; },
+  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoPlacement(); applyVideoBg(); },
 };
 const defaults = { ...params };
 
@@ -310,7 +310,7 @@ fVideo.add(params, 'videoHeight',  100,   900, 10).onChange(applyVideoPlacement)
 fVideo.add(params, 'videoMaxWidth', 20,   100,  5).onChange(applyVideoPlacement).name('最大宽度 (% 视口)');
 fVideo.addColor(params, 'videoBgColor').onChange(applyVideoBg).name('背景色');
 
-gui.add(params, 'autoRotate').name('🔄 自动旋转').onChange(v => controls.autoRotate = v);
+gui.add(params, 'autoRotate').name('🔄 自动旋转');
 
 gui.add(params, 'reset').name('↺ 重置全部');
 
@@ -406,8 +406,7 @@ function loadCam() {
 }
 controls.minDistance = 4;
 controls.maxDistance = 600;
-controls.autoRotate = true;
-controls.autoRotateSpeed = 0.6;  // Three.js default is 2.0 (= 30s / orbit @60fps); 0.6 ≈ 100s / orbit
+// Auto-rotate: spins the model around its local Z axis each frame in tick().
 
 // ---------- Load GLB ----------
 let model = null;
@@ -500,8 +499,21 @@ function fitToObject(obj, padding = 1.45) {
 controls.addEventListener('change', saveCam);
 
 // ---------- Loop ----------
+let _lastTick = performance.now();
 function tick() {
+  const now = performance.now();
+  const dt = Math.min(0.1, (now - _lastTick) / 1000);  // cap dt to avoid jumps after a tab unfreeze
+  _lastTick = now;
+
   controls.update();
+  if (params.autoRotate && model) {
+    // Model local axes per the GLB (THREE.GLTFExporter, identity matrices): Y-up.
+    // User asked for spinning around the model's own Z axis. With Y-up model,
+    // that makes the rig rock forward/backward in the screen plane.
+    // If you actually meant "spin around the vertical axis so you see all sides",
+    // change `.z` below to `.y`.
+    model.rotation.z += dt * 0.06;  // ≈ 100 s per full rotation
+  }
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
