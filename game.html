@@ -214,7 +214,12 @@ const params = {
   rimIntensity: 0.0,
   rimColor: '#ffffff',
   envIntensity: 0,
-  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); },
+  // SLB video overlay — position is the % of the viewport where the video's CENTER sits
+  videoX: 78,         // 0 = far left, 100 = far right; 78 ≈ "right edge with ~12px gap" on a 1920 viewport
+  videoY: 50,         // 0 = top, 100 = bottom; 50 = vertically centered
+  videoHeight: 480,   // px — max-height of the <video>, width comes from aspect ratio
+  videoMaxWidth: 55,  // % of viewport width — caps the video's width regardless of aspect
+  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoPlacement(); },
 };
 const defaults = { ...params };
 
@@ -234,6 +239,21 @@ function applyAll() {
   rim.intensity = params.rimIntensity;
   rim.color.set(params.rimColor);
   scene.environmentIntensity = params.envIntensity;
+}
+
+// ---------- Video overlay positioning (controlled by GUI) ----------
+const slbHeader = document.getElementById('slb-header');
+const slbVideo = document.getElementById('slb-video');
+
+function applyVideoPlacement() {
+  // Anchor the header box at (videoX%, videoY%) of the viewport and center the video on that point
+  slbHeader.style.left = `${params.videoX}%`;
+  slbHeader.style.top = `${params.videoY}%`;
+  slbHeader.style.right = 'auto';
+  slbHeader.style.bottom = 'auto';
+  slbHeader.style.transform = 'translate(-50%, -50%)';
+  slbVideo.style.maxHeight = `${params.videoHeight}px`;
+  slbVideo.style.maxWidth = `${params.videoMaxWidth}vw`;
 }
 
 // --- folders ---
@@ -265,6 +285,12 @@ fRim.addColor(params, 'rimColor').onChange(c => rim.color.set(c));
 
 const fEnv = gui.addFolder('Environment');
 fEnv.add(params, 'envIntensity', 0, 3, 0.01).onChange(v => scene.environmentIntensity = v);
+
+const fVideo = gui.addFolder('🖼 视频');
+fVideo.add(params, 'videoX',        0,   100, 1).onChange(applyVideoPlacement).name('水平 ←→ (%)');
+fVideo.add(params, 'videoY',        0,   100, 1).onChange(applyVideoPlacement).name('垂直 ↑↓ (%)');
+fVideo.add(params, 'videoHeight',  100,   900, 10).onChange(applyVideoPlacement).name('高度 (px)');
+fVideo.add(params, 'videoMaxWidth', 20,   100,  5).onChange(applyVideoPlacement).name('最大宽度 (% 视口)');
 
 gui.add(params, 'reset').name('↺ 重置全部');
 
@@ -317,6 +343,9 @@ fPin.add({
 fPin.add({
   clear: () => { pinList = []; savePinList(); }
 }, 'clear').name('🗑 清空序列');
+
+// ---------- Apply initial video placement (matches CSS defaults; runs once on load) ----------
+applyVideoPlacement();
 
 // ---------- Controls ----------
 // Close button for the SLB video overlay (also hides the blue header)
