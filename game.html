@@ -49,7 +49,8 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.NoToneMapping;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.getElementById('viewport').appendChild(renderer.domElement);
@@ -98,13 +99,13 @@ camera.position.set(7, 5, 9);
 camera.lookAt(0, 0, 0);
 
 // ---------- Lights（建筑白模 — 软影棚拍，有轮廓）----------
-const hemi = new THREE.HemisphereLight(0xffffff, 0xe8ebee, 0);
+const hemi = new THREE.HemisphereLight(0xffffff, 0xe8ebee, 0.45);
 scene.add(hemi);
 
-const ambient = new THREE.AmbientLight(0xffffff, 0.06);
+const ambient = new THREE.AmbientLight(0xffffff, 0.75);
 scene.add(ambient);
 
-const key = new THREE.DirectionalLight(0xffffff, 2.6);
+const key = new THREE.DirectionalLight(0xffffff, 1.6);
 key.position.set(40, 100, 50);
 key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
@@ -116,11 +117,11 @@ key.shadow.blurSamples = 25;
 scene.add(key);
 // 后面 fitToObject 会按模型尺寸重写 shadow.camera 边界
 
-const fill = new THREE.DirectionalLight(0xffffff, 0.55);
+const fill = new THREE.DirectionalLight(0xffffff, 0.35);
 fill.position.set(-60, 40, -30);
 scene.add(fill);
 
-const rim = new THREE.DirectionalLight(0xffffff, 0.5);
+const rim = new THREE.DirectionalLight(0xffffff, 0.25);
 rim.position.set(-30, 60, -80);
 scene.add(rim);
 
@@ -133,22 +134,22 @@ const gui = new GUI({ title: '⚙ lighting', width: 280 });
 gui.domElement.style.zIndex = 20;
 
 const params = {
-  bgColor: '#a9a9aa',
-  fogColor: '#a9a9aa',
-  fogNear: 22,
-  fogFar: 80,
-  ambientIntensity: 0.06,
+  bgColor: '#ffffff',
+  fogColor: '#ffffff',
+  fogNear: 40,
+  fogFar: 200,
+  ambientIntensity: 0.75,
   ambientColor: '#ffffff',
-  hemiIntensity: 0.0,
+  hemiIntensity: 0.45,
   hemiSky: '#ffffff',
   hemiGround: '#e8ebee',
-  keyIntensity: 2.6,
+  keyIntensity: 1.6,
   keyColor: '#ffffff',
-  keyShadowRadius: 6,
+  keyShadowRadius: 4,
   keyShadowBias: -0.0005,
-  fillIntensity: 0.55,
+  fillIntensity: 0.35,
   fillColor: '#ffffff',
-  rimIntensity: 0.5,
+  rimIntensity: 0.25,
   rimColor: '#ffffff',
   envIntensity: 0,
   reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); },
