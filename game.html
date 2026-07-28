@@ -24,7 +24,7 @@
 </head>
 <body>
 <div id="viewport"></div>
-<div id="tag">step <b>4</b> / n &nbsp;·&nbsp; loading GLB…</div>
+<div id="tag">step <b>6</b> / n &nbsp;·&nbsp; loading GLB…</div>
 <div id="hint">drag to orbit · scroll to zoom</div>
 
 <script type="importmap">
@@ -240,17 +240,17 @@ loader.load(
 
     const box = new THREE.Box3().setFromObject(model);
     const sz = box.getSize(new THREE.Vector3());
-    tagEl.innerHTML = `step <b>4</b> / n &nbsp;·&nbsp; GLB loaded — ${sz.x.toFixed(1)} × ${sz.y.toFixed(1)} × ${sz.z.toFixed(1)}`;
+    tagEl.innerHTML = `step <b>6</b> / n &nbsp;·&nbsp; GLB loaded — ${sz.x.toFixed(1)} × ${sz.y.toFixed(1)} × ${sz.z.toFixed(1)}`;
   },
   (xhr) => {
     if (xhr.lengthComputable) {
       const pct = (xhr.loaded / xhr.total * 100).toFixed(0);
-      tagEl.innerHTML = `step <b>4</b> / n &nbsp;·&nbsp; loading GLB… ${pct}%`;
+      tagEl.innerHTML = `step <b>6</b> / n &nbsp;·&nbsp; loading GLB… ${pct}%`;
     }
   },
   (err) => {
     console.error('GLB load failed:', err);
-    tagEl.innerHTML = `step <b>4</b> / n &nbsp;·&nbsp; GLB load failed`;
+    tagEl.innerHTML = `step <b>6</b> / n &nbsp;·&nbsp; GLB load failed`;
   }
 );
 
