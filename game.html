@@ -218,6 +218,7 @@ loader.load(
   'slb-style-oil-rig.glb',
   (gltf) => {
     model = gltf.scene;
+    model.rotation.y = Math.PI;  // helipad 默认在 +X 侧（视口右），用户截图要左
     model.traverse(o => {
       if (o.isMesh) {
         o.castShadow = true;
