@@ -24,7 +24,7 @@
 </head>
 <body>
 <div id="viewport"></div>
-<div id="tag">step <b>2</b> / n &nbsp;·&nbsp; 场景就绪 — 等加载 GLB</div>
+<div id="tag">step <b>3</b> / n &nbsp;·&nbsp; 场景已清空（无地面）— 等加载 GLB</div>
 <div id="hint">drag to orbit · scroll to zoom</div>
 
 <script type="importmap">
@@ -139,17 +139,7 @@ const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.18;
 
-// 地面 — 接收阴影，颜色跟背景底部融合（infinite floor）
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(80, 80),
-  new THREE.MeshStandardMaterial({
-    color: 0xeef0f2, roughness: 1.0, metalness: 0.0
-  })
-);
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = -2.0;
-ground.receiveShadow = true;
-scene.add(ground);
+// 地面（已移除 — 模型自带地面）
 
 // ---------- 占位物件（已清空 — 场景就绪，等加载 GLB）----------
 
@@ -157,7 +147,7 @@ scene.add(ground);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.target.set(0, 0.5, 0); // 略高于地面，等 GLB 进来后再 fit
+controls.target.set(0, 0, 0); // 原点，等 GLB 进来后再 fit
 controls.minDistance = 4;
 controls.maxDistance = 60;
 
