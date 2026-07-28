@@ -98,13 +98,13 @@ camera.position.set(7, 5, 9);
 camera.lookAt(0, 0, 0);
 
 // ---------- Lights（建筑白模 — 软影棚拍，有轮廓）----------
-const hemi = new THREE.HemisphereLight(0xffffff, 0x36597d, 0.86);
+const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.86);
 scene.add(hemi);
 
 const ambient = new THREE.AmbientLight(0xffffff, 0.29);
 scene.add(ambient);
 
-const key = new THREE.DirectionalLight(0xffffff, 1.0);
+const key = new THREE.DirectionalLight(0xffffff, 4.05);
 key.position.set(40, 100, 50);
 key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
@@ -116,7 +116,7 @@ key.shadow.blurSamples = 25;
 scene.add(key);
 // 后面 fitToObject 会按模型尺寸重写 shadow.camera 边界
 
-const fill = new THREE.DirectionalLight(0xffffff, 0.41);
+const fill = new THREE.DirectionalLight(0xffffff, 0.29);
 fill.position.set(-60, 40, -30);
 scene.add(fill);
 
@@ -138,12 +138,12 @@ const params = {
   ambientColor: '#ffffff',
   hemiIntensity: 0.86,
   hemiSky: '#ffffff',
-  hemiGround: '#36597d',
-  keyIntensity: 1.0,
+  hemiGround: '#ffffff',
+  keyIntensity: 4.05,
   keyColor: '#ffffff',
   keyShadowRadius: 1,
   keyShadowBias: -0.0009,
-  fillIntensity: 0.41,
+  fillIntensity: 0.29,
   fillColor: '#ffffff',
   rimIntensity: 0.0,
   rimColor: '#ffffff',
@@ -256,9 +256,9 @@ function fitToObject(obj, padding = 1.45) {
 
   // 3/4 高位 — 与参考图一致
   camera.position.set(
-    center.x + dist * 0.65,
-    center.y + dist * 0.50,
-    center.z + dist * 0.78
+    center.x + dist * 0.85,
+    center.y + dist * 0.30,
+    center.z + dist * 0.42
   );
   camera.near = Math.max(0.05, dist / 200);
   camera.far  = dist * 40;
