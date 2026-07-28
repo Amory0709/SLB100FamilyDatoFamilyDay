@@ -90,8 +90,7 @@ function makeGradientBg(baseHex) {
   }
   return bgTex;
 }
-scene.background = makeGradientBg('#a9a9aa');
-scene.fog = new THREE.Fog(0xa9a9aa, 22, 80);
+scene.background = makeGradientBg('#ffffff');
 
 // ---------- Camera ----------
 const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 2000);
@@ -99,29 +98,29 @@ camera.position.set(7, 5, 9);
 camera.lookAt(0, 0, 0);
 
 // ---------- Lights（建筑白模 — 软影棚拍，有轮廓）----------
-const hemi = new THREE.HemisphereLight(0xffffff, 0xe8ebee, 0.45);
+const hemi = new THREE.HemisphereLight(0xffffff, 0x36597d, 0.86);
 scene.add(hemi);
 
-const ambient = new THREE.AmbientLight(0xffffff, 0.75);
+const ambient = new THREE.AmbientLight(0xffffff, 0.29);
 scene.add(ambient);
 
-const key = new THREE.DirectionalLight(0xffffff, 1.6);
+const key = new THREE.DirectionalLight(0xffffff, 1.0);
 key.position.set(40, 100, 50);
 key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
 key.shadow.camera.near = 1;
 key.shadow.camera.far = 400;
-key.shadow.bias = -0.0005;
-key.shadow.radius = 6;
+key.shadow.bias = -0.0009;
+key.shadow.radius = 1;
 key.shadow.blurSamples = 25;
 scene.add(key);
 // 后面 fitToObject 会按模型尺寸重写 shadow.camera 边界
 
-const fill = new THREE.DirectionalLight(0xffffff, 0.35);
+const fill = new THREE.DirectionalLight(0xffffff, 0.41);
 fill.position.set(-60, 40, -30);
 scene.add(fill);
 
-const rim = new THREE.DirectionalLight(0xffffff, 0.25);
+const rim = new THREE.DirectionalLight(0xffffff, 0.0);
 rim.position.set(-30, 60, -80);
 scene.add(rim);
 
@@ -135,21 +134,18 @@ gui.domElement.style.zIndex = 20;
 
 const params = {
   bgColor: '#ffffff',
-  fogColor: '#ffffff',
-  fogNear: 40,
-  fogFar: 200,
-  ambientIntensity: 0.75,
+  ambientIntensity: 0.29,
   ambientColor: '#ffffff',
-  hemiIntensity: 0.45,
+  hemiIntensity: 0.86,
   hemiSky: '#ffffff',
-  hemiGround: '#e8ebee',
-  keyIntensity: 1.6,
+  hemiGround: '#36597d',
+  keyIntensity: 1.0,
   keyColor: '#ffffff',
-  keyShadowRadius: 4,
-  keyShadowBias: -0.0005,
-  fillIntensity: 0.35,
+  keyShadowRadius: 1,
+  keyShadowBias: -0.0009,
+  fillIntensity: 0.41,
   fillColor: '#ffffff',
-  rimIntensity: 0.25,
+  rimIntensity: 0.0,
   rimColor: '#ffffff',
   envIntensity: 0,
   reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); },
@@ -158,9 +154,6 @@ const defaults = { ...params };
 
 function applyAll() {
   scene.background = makeGradientBg(params.bgColor);
-  scene.fog.color.set(params.fogColor);
-  scene.fog.near = params.fogNear;
-  scene.fog.far  = params.fogFar;
   ambient.intensity = params.ambientIntensity;
   ambient.color.set(params.ambientColor);
   hemi.intensity = params.hemiIntensity;
@@ -180,9 +173,6 @@ function applyAll() {
 // --- folders ---
 const fBg = gui.addFolder('Background');
 fBg.addColor(params, 'bgColor').onChange(() => { scene.background = makeGradientBg(params.bgColor); });
-fBg.addColor(params, 'fogColor').onChange(() => scene.fog.color.set(params.fogColor));
-fBg.add(params, 'fogNear', 1, 200, 1).onChange(v => scene.fog.near = v);
-fBg.add(params, 'fogFar', 5, 500, 1).onChange(v => scene.fog.far = v);
 
 const fAmb = gui.addFolder('Ambient');
 fAmb.add(params, 'ambientIntensity', 0, 3, 0.01).onChange(v => ambient.intensity = v);
