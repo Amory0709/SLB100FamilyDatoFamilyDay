@@ -24,7 +24,7 @@
 </head>
 <body>
 <div id="viewport"></div>
-<div id="tag">step <b>1</b> / n &nbsp;·&nbsp; 灯光测试 — 还没加载模型</div>
+<div id="tag">step <b>2</b> / n &nbsp;·&nbsp; 场景就绪 — 等加载 GLB</div>
 <div id="hint">drag to orbit · scroll to zoom</div>
 
 <script type="importmap">
@@ -151,66 +151,15 @@ ground.position.y = -2.0;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// ---------- 占位物件（step 1 用来验证打光）----------
-const group = new THREE.Group();
-
-// 白色哑光球 — 验证 smooth shading
-const whiteMat = new THREE.MeshStandardMaterial({
-  color: 0xf0f0f0, roughness: 0.72, metalness: 0.0
-});
-const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.9, 64, 64), whiteMat);
-sphere.position.set(-2.4, 0, 0);
-sphere.castShadow = true;
-sphere.receiveShadow = true;
-group.add(sphere);
-
-// 蓝色发光球 — 验证 emissive 不溢色
-const blueMat = new THREE.MeshStandardMaterial({
-  color: 0x0040ff, roughness: 0.45, metalness: 0.0,
-  emissive: 0x002299, emissiveIntensity: 0.6
-});
-const blueSphere = new THREE.Mesh(new THREE.SphereGeometry(0.9, 64, 64), blueMat);
-blueSphere.position.set(0, 0, 0);
-blueSphere.castShadow = true;
-group.add(blueSphere);
-
-// 白色立方体 — 验证平面接受光
-const cube = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.3, 1.3), whiteMat);
-cube.position.set(2.4, 0.65, 0);
-cube.rotation.y = Math.PI * 0.18;
-cube.castShadow = true;
-cube.receiveShadow = true;
-group.add(cube);
-
-// 一片薄"平台" — 呼应你的 piattaforma_white 模型
-const platform = new THREE.Mesh(
-  new THREE.BoxGeometry(8, 0.25, 4),
-  whiteMat
-);
-platform.position.y = -1.6;
-platform.receiveShadow = true;
-group.add(platform);
-
-// 蓝色细连线 — 呼应参考图里的电缆
-const lineMat = new THREE.MeshStandardMaterial({
-  color: 0x0040ff, emissive: 0x0040ff, emissiveIntensity: 0.35,
-  roughness: 0.6, metalness: 0.0
-});
-const line = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 4.5, 12), lineMat);
-line.position.set(-1.4, -1.4, 0);
-line.rotation.z = Math.PI / 2;
-line.castShadow = true;
-group.add(line);
-
-scene.add(group);
+// ---------- 占位物件（已清空 — 场景就绪，等加载 GLB）----------
 
 // ---------- Controls ----------
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.target.set(0, 0, 0);
+controls.target.set(0, 0.5, 0); // 略高于地面，等 GLB 进来后再 fit
 controls.minDistance = 4;
-controls.maxDistance = 30;
+controls.maxDistance = 60;
 
 // ---------- Resize ----------
 addEventListener('resize', () => {
