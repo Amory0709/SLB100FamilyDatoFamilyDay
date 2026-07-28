@@ -34,6 +34,13 @@
     position: relative;
     display: block;
   }
+  #slb-video-bg {
+    position: absolute;
+    inset: 0;                   /* fill the wrap = same size as the video's rendered box */
+    background: rgb(0, 20, 200);
+    pointer-events: none;       /* let clicks pass to OrbitControls underneath */
+    border: 0; border-radius: 0; box-shadow: none; outline: none;
+  }
   #slb-video {
     display: block;
     max-height: 480px;          /* bumped from 320 → 480 (~1.5× taller) */
@@ -75,6 +82,7 @@
 
 <div id="slb-header">
   <div id="slb-video-wrap">
+    <div id="slb-video-bg"></div>
     <video id="slb-video"
            src="https://www.slb.com/static/anniversary28052026/assets/anniversity/video-home.webm"
            autoplay muted playsinline loop preload="auto"></video>
@@ -219,7 +227,8 @@ const params = {
   videoY: 50,         // 0 = top, 100 = bottom; 50 = vertically centered
   videoHeight: 480,   // px — max-height of the <video>, width comes from aspect ratio
   videoMaxWidth: 55,  // % of viewport width — caps the video's width regardless of aspect
-  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoPlacement(); },
+  videoBgColor: 'rgb(0, 20, 200)',  // solid color shown through the video's transparent pixels
+  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoPlacement(); applyVideoBg(); },
 };
 const defaults = { ...params };
 
@@ -244,6 +253,7 @@ function applyAll() {
 // ---------- Video overlay positioning (controlled by GUI) ----------
 const slbHeader = document.getElementById('slb-header');
 const slbVideo = document.getElementById('slb-video');
+const slbVideoBg = document.getElementById('slb-video-bg');
 
 function applyVideoPlacement() {
   // Anchor the header box at (videoX%, videoY%) of the viewport and center the video on that point
@@ -254,6 +264,10 @@ function applyVideoPlacement() {
   slbHeader.style.transform = 'translate(-50%, -50%)';
   slbVideo.style.maxHeight = `${params.videoHeight}px`;
   slbVideo.style.maxWidth = `${params.videoMaxWidth}vw`;
+}
+
+function applyVideoBg() {
+  slbVideoBg.style.background = params.videoBgColor;
 }
 
 // --- folders ---
@@ -291,6 +305,7 @@ fVideo.add(params, 'videoX',        0,   100, 1).onChange(applyVideoPlacement).n
 fVideo.add(params, 'videoY',        0,   100, 1).onChange(applyVideoPlacement).name('垂直 ↑↓ (%)');
 fVideo.add(params, 'videoHeight',  100,   900, 10).onChange(applyVideoPlacement).name('高度 (px)');
 fVideo.add(params, 'videoMaxWidth', 20,   100,  5).onChange(applyVideoPlacement).name('最大宽度 (% 视口)');
+fVideo.addColor(params, 'videoBgColor').onChange(applyVideoBg).name('背景色');
 
 gui.add(params, 'reset').name('↺ 重置全部');
 
@@ -346,6 +361,7 @@ fPin.add({
 
 // ---------- Apply initial video placement (matches CSS defaults; runs once on load) ----------
 applyVideoPlacement();
+applyVideoBg();
 
 // ---------- Controls ----------
 // Close button for the SLB video overlay (also hides the blue header)
