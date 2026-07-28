@@ -196,7 +196,7 @@ scene.environmentIntensity = 0;
 
 // ---------- GUI Controller ----------
 const gui = new GUI({ title: '⚙ lighting', width: 280 });
-gui.domElement.style.zIndex = 20;
+gui.domElement.style.zIndex = 9999;  // always above video overlay (z25) and its buttons (z31/32)
 gui.domElement.style.position = 'fixed';
 gui.domElement.style.top = '60px';
 gui.domElement.style.right = '14px';
