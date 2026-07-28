@@ -90,7 +90,7 @@ function makeGradientBg(baseHex) {
   }
   return bgTex;
 }
-scene.background = makeGradientBg('#ffffff');
+scene.background = makeGradientBg('#d1d1d1');
 
 // ---------- Camera ----------
 const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 2000);
@@ -133,7 +133,7 @@ const gui = new GUI({ title: '⚙ lighting', width: 280 });
 gui.domElement.style.zIndex = 20;
 
 const params = {
-  bgColor: '#ffffff',
+  bgColor: '#d1d1d1',
   ambientIntensity: 0.29,
   ambientColor: '#ffffff',
   hemiIntensity: 0.86,
@@ -204,8 +204,15 @@ gui.add(params, 'reset').name('↺ 重置全部');
 
 // ---------- Pin view positions (record a sequence for assistant) ----------
 const PIN_KEY = '***';
+// Hardcoded P1 — user's initial view (set 2026-07-28)
+const P1_CAM = [-149.21, 147.49, 155.24];
+const P1_TGT = [128.93, -14.50, -43.00];
 let pinList = [];
 try { pinList = JSON.parse(localStorage.getItem(PIN_KEY) || '[]'); } catch (e) {}
+// Seed P1 in memory (so "回到 P1" works from first load, even before user records)
+if (pinList.length === 0) {
+  pinList.push({ label: 'P1', pos: [...P1_CAM], tgt: [...P1_TGT] });
+}
 
 const pinEl = document.createElement('div');
 pinEl.id = 'pin-list';
@@ -305,6 +312,13 @@ loader.load(
     });
     scene.add(model);
     fitToObject(model);
+
+    // Hardcoded default view (P1 from user, 2026-07-28)
+    camera.position.set(P1_CAM[0], P1_CAM[1], P1_CAM[2]);
+    controls.target.set(P1_TGT[0], P1_TGT[1], P1_TGT[2]);
+    controls.update();
+    camera.updateProjectionMatrix();
+    saveCam();  // persist P1 as the baseline
 
     // If user has a saved camera from previous session, restore it
     if (loadCam()) {
