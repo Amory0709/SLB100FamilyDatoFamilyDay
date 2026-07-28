@@ -230,7 +230,7 @@ const params = {
   videoHeight: 480,   // px — max-height of the <video>, width comes from aspect ratio
   videoMaxWidth: 55,  // % of viewport width — caps the video's width regardless of aspect
   videoBgColor: 'rgb(0, 20, 200)',  // solid color shown through the video's transparent pixels
-  autoRotate: true,                // OrbitControls.autoRotate — turntable orbit of the rig
+  autoRotate: true,                // per-frame spin of the model around its local Y axis (vertical)
   reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoPlacement(); applyVideoBg(); },
 };
 const defaults = { ...params };
@@ -508,11 +508,10 @@ function tick() {
   controls.update();
   if (params.autoRotate && model) {
     // Model local axes per the GLB (THREE.GLTFExporter, identity matrices): Y-up.
-    // User asked for spinning around the model's own Z axis. With Y-up model,
-    // that makes the rig rock forward/backward in the screen plane.
-    // If you actually meant "spin around the vertical axis so you see all sides",
-    // change `.z` below to `.y`.
-    model.rotation.z += dt * 0.06;  // ≈ 100 s per full rotation
+    // Y is the rig's vertical axis, so spinning around .y turns the helipad like
+    // a clock hand and you see every side of the rig (user confirmed this is
+    // what they wanted over the .z rocking effect).
+    model.rotation.y += dt * 0.06;  // ≈ 100 s per full rotation
   }
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
