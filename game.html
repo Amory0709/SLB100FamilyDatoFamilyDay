@@ -90,13 +90,13 @@ camera.position.set(7, 5, 9);
 camera.lookAt(0, 0, 0);
 
 // ---------- Lights（建筑白模 — 软影棚拍，有轮廓）----------
-const hemi = new THREE.HemisphereLight(0xffffff, 0xe8ebee, 1.1);
+const hemi = new THREE.HemisphereLight(0xffffff, 0xe8ebee, 0);
 scene.add(hemi);
 
-const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+const ambient = new THREE.AmbientLight(0xffffff, 0.06);
 scene.add(ambient);
 
-const key = new THREE.DirectionalLight(0xffffff, 3.4);
+const key = new THREE.DirectionalLight(0xffffff, 2.6);
 key.position.set(40, 100, 50);
 key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
@@ -108,11 +108,11 @@ key.shadow.blurSamples = 25;
 scene.add(key);
 // 后面 fitToObject 会按模型尺寸重写 shadow.camera 边界
 
-const fill = new THREE.DirectionalLight(0xffffff, 0.25);
+const fill = new THREE.DirectionalLight(0xffffff, 0.55);
 fill.position.set(-60, 40, -30);
 scene.add(fill);
 
-const rim = new THREE.DirectionalLight(0xffffff, 0.6);
+const rim = new THREE.DirectionalLight(0xffffff, 0.5);
 rim.position.set(-30, 60, -80);
 scene.add(rim);
 
