@@ -230,7 +230,8 @@ const params = {
   videoHeight: 480,   // px — max-height of the <video>, width comes from aspect ratio
   videoMaxWidth: 55,  // % of viewport width — caps the video's width regardless of aspect
   videoBgColor: 'rgb(0, 20, 200)',  // solid color shown through the video's transparent pixels
-  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoPlacement(); applyVideoBg(); },
+  autoRotate: true,                // OrbitControls.autoRotate — turntable orbit of the rig
+  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoPlacement(); applyVideoBg(); controls.autoRotate = params.autoRotate; },
 };
 const defaults = { ...params };
 
@@ -308,6 +309,8 @@ fVideo.add(params, 'videoY',        0,   100, 1).onChange(applyVideoPlacement).n
 fVideo.add(params, 'videoHeight',  100,   900, 10).onChange(applyVideoPlacement).name('高度 (px)');
 fVideo.add(params, 'videoMaxWidth', 20,   100,  5).onChange(applyVideoPlacement).name('最大宽度 (% 视口)');
 fVideo.addColor(params, 'videoBgColor').onChange(applyVideoBg).name('背景色');
+
+gui.add(params, 'autoRotate').name('🔄 自动旋转').onChange(v => controls.autoRotate = v);
 
 gui.add(params, 'reset').name('↺ 重置全部');
 
@@ -403,6 +406,8 @@ function loadCam() {
 }
 controls.minDistance = 4;
 controls.maxDistance = 600;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.6;  // Three.js default is 2.0 (= 30s / orbit @60fps); 0.6 ≈ 100s / orbit
 
 // ---------- Load GLB ----------
 let model = null;
