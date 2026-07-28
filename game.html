@@ -207,6 +207,30 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.target.set(0, 0, 0);
+
+// ---------- Camera state persistence (localStorage) ----------
+// Save: 鼠标拖动后 100ms 防抖；Load: 模型加载完才覆盖默认 fitToObject
+const CAM_KEY = 'slb100_cam_v1';
+let camSaveTimer = null;
+function saveCam() {
+  clearTimeout(camSaveTimer);
+  camSaveTimer = setTimeout(() => {
+    const cam = camera.position.toArray();
+    const tgt = controls.target.toArray();
+    try { localStorage.setItem(CAM_KEY, JSON.stringify({ cam, tgt })); } catch (e) {}
+  }, 100);
+}
+function loadCam() {
+  try {
+    const raw = localStorage.getItem(CAM_KEY);
+    if (!raw) return false;
+    const { cam, tgt } = JSON.parse(raw);
+    if (!Array.isArray(cam) || cam.length !== 3) return false;
+    camera.position.set(cam[0], cam[1], cam[2]);
+    if (Array.isArray(tgt) && tgt.length === 3) controls.target.set(tgt[0], tgt[1], tgt[2]);
+    return true;
+  } catch (e) { return false; }
+}
 controls.minDistance = 4;
 controls.maxDistance = 600;
 
@@ -218,7 +242,7 @@ loader.load(
   'slb-style-oil-rig.glb',
   (gltf) => {
     model = gltf.scene;
-    model.rotation.y = Math.PI;  // helipad 默认在 +X 侧（视口右），用户截图要左
+    model.rotation.y = 0;  // 模型自然朝向 — helipad 默认在 -X 侧（视口左）
     model.traverse(o => {
       if (o.isMesh) {
         o.castShadow = true;
@@ -228,6 +252,12 @@ loader.load(
     });
     scene.add(model);
     fitToObject(model);
+
+    // If user has a saved camera from previous session, restore it
+    if (loadCam()) {
+      camera.updateProjectionMatrix();
+      controls.update();
+    }
 
     const box = new THREE.Box3().setFromObject(model);
     const sz = box.getSize(new THREE.Vector3());
@@ -244,6 +274,13 @@ loader.load(
     tagEl.innerHTML = `step <b>8</b> / n &nbsp;·&nbsp; GLB load failed`;
   }
 );
+
+// ---------- Resize ----------
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 
 // ---------- Fit camera + key light shadow camera to object ----------
 function fitToObject(obj, padding = 1.45) {
@@ -269,6 +306,7 @@ function fitToObject(obj, padding = 1.45) {
   controls.minDistance = dist * 0.25;
   controls.maxDistance = dist * 6;
   controls.update();
+  saveCam();  // 存 fitToObject 默认位置（用户没动过 camera 的话，刷新还是这个）
 
   // Key light shadow camera bounds — 包住模型 + 一点 padding
   const s = r * 1.6;
@@ -281,12 +319,8 @@ function fitToObject(obj, padding = 1.45) {
   key.shadow.camera.updateProjectionMatrix();
 }
 
-// ---------- Resize ----------
-addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
+// ---------- Save camera on orbit/zoom ----------
+controls.addEventListener('change', saveCam);
 
 // ---------- Loop ----------
 function tick() {
