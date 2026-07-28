@@ -27,20 +27,18 @@
 <div id="tag">step <b>8</b> / n &nbsp;·&nbsp; loading GLB…</div>
 <div id="hint">drag to orbit · scroll to zoom</div>
 
-<div id="slb-video-wrap" style="position:absolute; top:14px; right:14px; z-index:30; width:360px; max-width:42vw;">
+<div id="slb-video-wrap" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:30; width:520px; max-width:60vw; pointer-events:none;">
   <video id="slb-video"
          src="https://www.slb.com/static/anniversary28052026/assets/anniversity/video-home.webm"
-         autoplay muted playsinline loop controls preload="auto"
-         style="width:100%; border-radius:8px; display:block;
-                box-shadow:0 4px 24px rgba(0,0,0,0.18); background:#000;">
+         autoplay muted playsinline loop preload="auto"
+         style="width:100%; display:block; background:transparent; pointer-events:none;">
   </video>
   <button id="slb-video-close"
-          title="close video"
-          style="position:absolute; top:8px; right:8px; z-index:31;
-                 width:24px; height:24px; border-radius:50%; border:none;
-                 background:rgba(0,0,0,0.55); color:#fff; cursor:pointer;
-                 font-size:15px; line-height:1; padding:0;
-                 backdrop-filter:blur(4px); font-family:sans-serif;">×</button>
+          title="close"
+          style="position:absolute; top:-10px; right:-10px; z-index:31;
+                 width:22px; height:22px; border-radius:50%; border:none;
+                 background:rgba(0,0,0,0.6); color:#fff; cursor:pointer;
+                 font-size:13px; line-height:1; padding:0; pointer-events:auto;">×</button>
 </div>
 
 <script type="importmap">
@@ -148,8 +146,7 @@ scene.environmentIntensity = 0;
 const gui = new GUI({ title: '⚙ lighting', width: 280 });
 gui.domElement.style.zIndex = 20;
 gui.domElement.style.position = 'fixed';
-gui.domElement.style.top = 'auto';
-gui.domElement.style.bottom = '14px';
+gui.domElement.style.top = '14px';
 gui.domElement.style.right = '14px';
 
 const params = {
