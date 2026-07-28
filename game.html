@@ -202,6 +202,59 @@ fEnv.add(params, 'envIntensity', 0, 3, 0.01).onChange(v => scene.environmentInte
 
 gui.add(params, 'reset').name('↺ 重置全部');
 
+// ---------- Pin view positions (record a sequence for assistant) ----------
+const PIN_KEY = '***';
+let pinList = [];
+try { pinList = JSON.parse(localStorage.getItem(PIN_KEY) || '[]'); } catch (e) {}
+
+const pinEl = document.createElement('div');
+pinEl.id = 'pin-list';
+pinEl.style.cssText = 'position:absolute;top:60px;left:14px;z-index:11;background:rgba(255,255,255,0.88);padding:8px 12px;border-radius:6px;font-size:10px;color:#1a1a1a;font-family:ui-monospace,Menlo,monospace;border:1px solid rgba(0,0,0,0.1);max-width:min(90vw,520px);word-break:break-all;line-height:1.5;backdrop-filter:blur(6px);display:none;';
+document.body.appendChild(pinEl);
+
+function updatePinHUD() {
+  if (pinList.length === 0) { pinEl.style.display = 'none'; return; }
+  pinEl.style.display = 'block';
+  pinEl.innerHTML = '<b>📍 视角序列（复制发给助手）</b><br>' +
+    pinList.map(p =>
+      `<b>${p.label}:</b> cam=[${p.pos.map(v => v.toFixed(2)).join(', ')}]<br>` +
+      `&nbsp;&nbsp;tgt=[${p.tgt.map(v => v.toFixed(2)).join(', ')}]`
+    ).join('<br>');
+}
+
+function savePinList() {
+  try { localStorage.setItem(PIN_KEY, JSON.stringify(pinList)); } catch (e) {}
+}
+
+const fPin = gui.addFolder('📍 视角');
+fPin.add({
+  pin: () => {
+    const pos = camera.position.toArray();
+    const tgt = controls.target.toArray();
+    const label = `P${pinList.length + 1}`;
+    pinList.push({ label, pos: pos.map(v => +v.toFixed(4)), tgt: tgt.map(v => +v.toFixed(4)) });
+    savePinList();
+    console.log(`📍 Pinned ${label}: cam=[${pos.map(v => v.toFixed(2)).join(', ')}], tgt=[${tgt.map(v => v.toFixed(2)).join(', ')}]`);
+    updatePinHUD();
+  }
+}, 'pin').name('📍 记下当前视角');
+fPin.add({
+  goP1: () => {
+    if (pinList.length === 0) { console.warn('📍 no pinned views yet'); return; }
+    const p = pinList[0];
+    camera.position.set(p.pos[0], p.pos[1], p.pos[2]);
+    controls.target.set(p.tgt[0], p.tgt[1], p.tgt[2]);
+    camera.updateProjectionMatrix();
+    controls.update();
+    saveCam();
+  }
+}, 'goP1').name('↩ 回到 P1');
+fPin.add({
+  clear: () => { pinList = []; savePinList(); updatePinHUD(); }
+}, 'clear').name('🗑 清空序列');
+
+updatePinHUD();
+
 // ---------- Controls ----------
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
