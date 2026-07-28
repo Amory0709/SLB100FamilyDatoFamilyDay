@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Game Page — Step 1: 灯光测试</title>
+<title>SLB 100 Family Day — Game Page</title>
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #fff;
@@ -24,7 +24,7 @@
 </head>
 <body>
 <div id="viewport"></div>
-<div id="tag">step <b>3</b> / n &nbsp;·&nbsp; 场景已清空（无地面）— 等加载 GLB</div>
+<div id="tag">step <b>4</b> / n &nbsp;·&nbsp; loading GLB…</div>
 <div id="hint">drag to orbit · scroll to zoom</div>
 
 <script type="importmap">
@@ -40,15 +40,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // ---------- Renderer ----------
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-// CRITICAL: 保持颜色脆，不要被 tone-map 灰化
 renderer.toneMapping = THREE.NoToneMapping;
-// 软阴影（参考图的"软影棚拍"质感）
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.getElementById('viewport').appendChild(renderer.domElement);
@@ -56,17 +55,13 @@ document.getElementById('viewport').appendChild(renderer.domElement);
 // ---------- Scene ----------
 const scene = new THREE.Scene();
 
-// 背景：摄影棚软光影 — 三层叠加（基础灰 + 中央软光 + 顶部雾化）
+// 背景：摄影棚软光影 — 三层叠加
 function makeGradientBg() {
   const c = document.createElement('canvas');
   c.width = 1024; c.height = 1024;
   const ctx = c.getContext('2d');
-
-  // ① 基础中灰 — 背景主调
   ctx.fillStyle = '#d6dade';
   ctx.fillRect(0, 0, 1024, 1024);
-
-  // ② 中央软光晕（柔光箱效果）— 从下中略偏，辐射衰减
   const glow = ctx.createRadialGradient(512, 620, 60, 512, 620, 820);
   glow.addColorStop(0.00, 'rgba(252, 253, 254, 1.00)');
   glow.addColorStop(0.35, 'rgba(238, 241, 244, 0.55)');
@@ -74,15 +69,12 @@ function makeGradientBg() {
   glow.addColorStop(1.00, 'rgba(214, 218, 222, 0.00)');
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, 1024, 1024);
-
-  // ③ 顶部雾化层 — 冷色薄雾，营远雾感
   const haze = ctx.createLinearGradient(0, 0, 0, 1024);
   haze.addColorStop(0.00, 'rgba(150, 158, 166, 0.18)');
   haze.addColorStop(0.45, 'rgba(150, 158, 166, 0.00)');
   haze.addColorStop(1.00, 'rgba(255, 255, 255, 0.06)');
   ctx.fillStyle = haze;
   ctx.fillRect(0, 0, 1024, 1024);
-
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.minFilter = THREE.LinearFilter;
@@ -90,66 +82,121 @@ function makeGradientBg() {
   return tex;
 }
 scene.background = makeGradientBg();
-
-// 雾：远处淡入背景主色（注意是基础中灰，不是中间软光）
-scene.fog = new THREE.Fog(0xd6dade, 18, 60);
+scene.fog = new THREE.Fog(0xd6dade, 22, 80);
 
 // ---------- Camera ----------
-const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 2000);
 camera.position.set(7, 5, 9);
 camera.lookAt(0, 0, 0);
 
 // ---------- Lights（建筑白模 — 软影棚拍，有轮廓）----------
-// Hemi: 顶亮底略冷（弱）
 const hemi = new THREE.HemisphereLight(0xffffff, 0xe8ebee, 1.0);
 scene.add(hemi);
 
-// Ambient: 中等 flat 补光（不能太高，否则模型变纸片）
 const ambient = new THREE.AmbientLight(0xffffff, 0.42);
 scene.add(ambient);
 
-// Key light: 上方偏右前 — 强度回升、影子软一档
 const key = new THREE.DirectionalLight(0xffffff, 1.25);
-key.position.set(4, 12, 5); // 上方偏右前 → 影子落左后
+key.position.set(40, 100, 50);
 key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
 key.shadow.camera.near = 1;
-key.shadow.camera.far = 40;
-key.shadow.camera.left   = -14;
-key.shadow.camera.right  =  14;
-key.shadow.camera.top    =  14;
-key.shadow.camera.bottom = -14;
+key.shadow.camera.far = 400;
 key.shadow.bias = -0.0005;
-key.shadow.radius = 6; // 中等软笔触 — 能看见形状但不硬
+key.shadow.radius = 6;
 key.shadow.blurSamples = 25;
 scene.add(key);
+// 后面 fitToObject 会按模型尺寸重写 shadow.camera 边界
 
-// 补光（对角，强度调低 — 让阴影侧明显暗一档，制造轮廓感）
 const fill = new THREE.DirectionalLight(0xffffff, 0.2);
-fill.position.set(-6, 4, -3);
+fill.position.set(-60, 40, -30);
 scene.add(fill);
 
-// 弱顶背光（rim）— 让物件背缘有轻微高光 = 轮廓清昕
 const rim = new THREE.DirectionalLight(0xffffff, 0.35);
-rim.position.set(-3, 6, -8); // 后左上方
+rim.position.set(-30, 60, -80);
 scene.add(rim);
 
-// 极弱环境贴图（仅给 PBR sheen）
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = 0.18;
-
-// 地面（已移除 — 模型自带地面）
-
-// ---------- 占位物件（已清空 — 场景就绪，等加载 GLB）----------
+scene.environmentIntensity = 0.22;
 
 // ---------- Controls ----------
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.target.set(0, 0, 0); // 原点，等 GLB 进来后再 fit
+controls.target.set(0, 0, 0);
 controls.minDistance = 4;
-controls.maxDistance = 60;
+controls.maxDistance = 600;
+
+// ---------- Load GLB ----------
+const tagEl = document.getElementById('tag');
+let model = null;
+const loader = new GLTFLoader();
+loader.load(
+  'piattaforma_white.glb',
+  (gltf) => {
+    model = gltf.scene;
+    model.traverse(o => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+        if (o.material) o.material.envMapIntensity = 0.5;
+      }
+    });
+    scene.add(model);
+    fitToObject(model);
+
+    const box = new THREE.Box3().setFromObject(model);
+    const sz = box.getSize(new THREE.Vector3());
+    tagEl.innerHTML = `step <b>4</b> / n &nbsp;·&nbsp; GLB loaded — ${sz.x.toFixed(1)} × ${sz.y.toFixed(1)} × ${sz.z.toFixed(1)}`;
+  },
+  (xhr) => {
+    if (xhr.lengthComputable) {
+      const pct = (xhr.loaded / xhr.total * 100).toFixed(0);
+      tagEl.innerHTML = `step <b>4</b> / n &nbsp;·&nbsp; loading GLB… ${pct}%`;
+    }
+  },
+  (err) => {
+    console.error('GLB load failed:', err);
+    tagEl.innerHTML = `step <b>4</b> / n &nbsp;·&nbsp; GLB load failed`;
+  }
+);
+
+// ---------- Fit camera + key light shadow camera to object ----------
+function fitToObject(obj, padding = 1.45) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const sphere = box.getBoundingSphere(new THREE.Sphere());
+  const center = sphere.center;
+  const r = sphere.radius;
+
+  const fov = camera.fov * (Math.PI / 180);
+  const dist = (r / Math.sin(fov / 2)) * padding;
+
+  // 3/4 高位 — 与参考图一致
+  camera.position.set(
+    center.x + dist * 0.65,
+    center.y + dist * 0.50,
+    center.z + dist * 0.78
+  );
+  camera.near = Math.max(0.05, dist / 200);
+  camera.far  = dist * 40;
+  camera.updateProjectionMatrix();
+
+  controls.target.copy(center);
+  controls.minDistance = dist * 0.25;
+  controls.maxDistance = dist * 6;
+  controls.update();
+
+  // Key light shadow camera bounds — 包住模型 + 一点 padding
+  const s = r * 1.6;
+  key.shadow.camera.left   = -s;
+  key.shadow.camera.right  =  s;
+  key.shadow.camera.top    =  s;
+  key.shadow.camera.bottom = -s;
+  key.shadow.camera.near   = Math.max(0.1, dist / 10);
+  key.shadow.camera.far    = dist * 6;
+  key.shadow.camera.updateProjectionMatrix();
+}
 
 // ---------- Resize ----------
 addEventListener('resize', () => {
