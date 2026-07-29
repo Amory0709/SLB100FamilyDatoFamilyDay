@@ -16,10 +16,20 @@ that matters.
 ## Repo layout
 ```
 SLB100FamilyDatoFamilyDay/
-├── game.html              ← THE WHOLE APP (~470 lines, all in one)
+├── index.html             ← mirror of game.html (added 9cf8356 — GitHub
+│                            Pages serves whatever is index.html; without
+│                            it, README.md would render as the landing page)
+├── game.html              ← THE WHOLE APP (single source of truth; ~760 lines,
+│                            all HTML + CSS + ES-module JS inline)
+├── slb-style-oil-rig.glb  ← 3D model (~26 MB) — referenced by loader
 ├── HANDOVER.md            ← this file
+├── README.md              ← stale (still describes pre-GLB step 1) — read HANDOVER
 └── (no build step, no npm, no node_modules — pure static)
 ```
+
+**Important**: any structural change to `game.html` (HTML/CSS/JS) should be mirrored
+1-to-1 into `index.html` in the same commit. Pattern: edit `game.html`,
+`cp game.html index.html`, then commit both. Don't let them drift.
 
 ## Tech stack
 - **Three.js r160** via ESM import map → `unpkg.com`
@@ -31,19 +41,23 @@ SLB100FamilyDatoFamilyDay/
 - Background: `#d1d1d1` (gray, chosen by user)
 - No bundler, no transpiler, no service worker
 
-## Current visual state (HEAD = `a88783a`)
+## Current visual state (HEAD = `cb57add`)
 | Layer | Where | Z-index |
 |---|---|---|
+| **`#loader`** (SLB-blue full-viewport overlay) | covers entire viewport until GLB stream completes, then fades 500 ms and DOM-removed | 10000 |
+| Loading text | `Loading… X KB / Y MB` — running byte counter, no percentage | inside loader |
+| Loading bar | indeterminate slide L↔R (no percentage track) | inside loader |
+| Loading spinner | white-on-blue ring above the bar | inside loader |
 | 3D viewport | fills the page (oil rig model) | default |
 | Oil rig | at origin, slow Y-axis spin (≈100 s / orbit, toggled by 🔄 自动旋转) | — |
-| `#slb-video-bg` (blue plate behind video) | fills `#slb-video-wrap`, default `rgb(0,20,200)`, configurable via GUI | inside wrap |
-| Video overlay | transparent webm, autoplay/loop/muted/playsinline, anchored at `(videoX%, videoY%)` of viewport with `translate(-50%,-50%)`, `max-height 480px / max-width 55vw` | inside wrap |
-| × close button | inside video, top-right — hides the entire overlay | 31 |
-| ⚙ toggle button | inside video, top-left — shows GUI; `display:none` after click | 32 |
+| `#slb-panel` (right-side blue plate — also contains the video) | `fixed; top/right/bottom:0; width:28vw; min-width:360px; background:rgb(0,20,200)` | 25 |
+| Video overlay | transparent webm, pinned to bottom of `#slb-panel` via `margin-top:auto`, `width:100%; max-height:56vh` | inside panel |
+| × close button | inside panel, top-right — hides the entire panel (which hides the video with it) | 31 |
+| ⚙ toggle button | inside panel, top-left — shows GUI; `display:none` after click | 32 |
 | GUI (lil-gui) | hidden by default, `position:fixed; top:60; right:14`; **always on top once shown** | 9999 |
 | `#hint` | bottom-left, "drag to orbit · scroll to zoom" | 10 |
 
-After GLB loads, P1 is restored then auto-rotate kicks in (default).
+After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (default).
 
 ## GUI contents (top-level, in order)
 - 📁 Background: `bgColor`
@@ -99,6 +113,26 @@ After GLB loads, P1 is restored then auto-rotate kicks in (default).
    cover the control panel when the 🖼 视频 sliders move the video over
    the panel area. (The lil-gui title bar is draggable, so the user can
    also just move the panel out of the way.)
+7. **`game.html` and `index.html` must stay byte-identical** — the
+   GitHub Pages entry is `index.html`. After every JS/CSS/HTML change,
+   copy `game.html` → `index.html` in the same commit. (See "Repo
+   layout" above.)
+8. **The loader bar MUST NOT show a percentage.** GitHub Pages on
+   `.glb` files does NOT emit `Content-Range` for `Range: bytes=X-` probes
+   (verifiable with `curl -sI -H 'Range: bytes=0-0'` — it returns
+   `200 OK` + `Content-Length`, not `206 Partial Content` + `Content-Range`).
+   We tried in `924bf99` and the denominator mismatched the actual stream,
+   making the bar hit 500 %+. **Final solution in `cb57add`**: bar is
+   permanently indeterminate (L↔R slide), text shows only bytes received
+   — no % sign, no `/`, no total. Don't reintroduce a percentage.
+9. **Loader z-index 10000 + `display:flex; align-items:center`** — keeps
+   it pinned to the viewport even during the brief moment before the
+   WebGL canvas is sized. Don't change to absolute positioning over a
+   small target.
+10. **Loader fade-out order matters**: after `applyModel(gltf)` runs in
+    `requestAnimationFrame`, wait one more frame so the first render
+    *actually has pixels* before starting the opacity transition. Doing
+    it earlier shows a black flash.
 
 ## Workflow expectations (learned the hard way)
 - **User orbits with mouse and wants THAT angle remembered.** Don't try
@@ -119,23 +153,44 @@ After GLB loads, P1 is restored then auto-rotate kicks in (default).
   for "spin" they almost always mean a turntable around vertical
   (= local Y) and not around the depth axis (= local Z). Confirmed by
   `a88783a` over `c51510d`.
+- **When a visual change isn't quantifiable (e.g., spinner reaching 500 %),
+  ask *which* failure mode they saw with a Telegram poll — A/B/C options
+  beats an open "what's wrong?" question** (used in #2355 after the first
+  loader bar attempt).
+- **Don't promise per-cent accuracy if the server doesn't help you.** If
+  the server's headers can't supply a denominator, drop the percentage
+  entirely rather than show a wrong one. (Applied in `cb57add`.)
+- **Edits to `game.html` structural files always mirror to `index.html`
+  in the same commit.**
 
 ## Local dev
 - No build step. Just serve the folder:
   ```bash
   cd SLB100FamilyDatoFamilyDay
   python3 -m http.server 8790
-  # open http://127.0.0.1:8790/game.html
+  # open http://127.0.0.1:8790/index.html  (or /game.html — both work)
   ```
-- Local server check: `curl -sI http://127.0.0.1:8790/game.html`
-- Verify syntax: parse the inline `<script type="module">` block with
-  Node (replace `import` lines with comments first).
+- Local server check: `curl -sI http://127.0.0.1:8790/index.html`
+- Verify JS syntax: extract the inline `<script type="module">` block to
+  `/tmp/check.mjs` and run `node --check /tmp/check.mjs`. No imports
+  needed for syntax-only validation.
+- Useful probes for understanding what GitHub Pages actually returns:
+  - Headers in general: `curl -sI https://amory0709.github.io/SLB100FamilyDatoFamilyDay/slb-style-oil-rig.glb`
+  - Range probe: `curl -sI -H 'Range: bytes=0-0' …/slb-style-oil-rig.glb`
+  - These were key to debugging the loader (see gotcha #8 above).
 
 ## Recent commits worth knowing about
 ```
-a88783a fix: spin model around Y (vertical) instead of Z (rocking)   ← HEAD
+cb57add fix: drop fake percentage, show only real bytes + indeterminate bar   ← HEAD
+b911956 tweak: loader background → SLB blue rgb(0,20,200) matching right panel
+646211b tweak: shorten loader text 'Loading 3D scene…' → 'Loading…'
+924bf99 fix: real-time byte progress on GLB load                                  [superseded by cb57add — gave 500%]
+88baa84 feat: full-viewport loading screen with progress bar
+9cf8356 fix: add index.html entry so GitHub Pages renders game.html content
+3838354 tweak: english labels, video bottom, SLB font, panel padding, no video size cap
+a88783a fix: spin model around Y (vertical) instead of Z (rocking)
 c51510d feat: spin the model around its local Z axis (replaces camera turntable)
-844242c feat: slowly auto-orbit the oil rig (turntable view)         [superseded by c51510d]
+844242c feat: slowly auto-orbit the oil rig (turntable view)              [superseded by c51510d]
 ddebd2f fix: GUI panel always on top once opened (z-index 20 → 9999)
 8b11008 fix: video was hidden behind its own blue backdrop (stacking bug)
 bdfb4ab feat: blue backdrop behind the video (same size, color in GUI)
@@ -164,6 +219,13 @@ dea6668 style: rotate model 180° around Y — flip helipad to view-left  (WRONG
   literal to `false` in `params` if you want default-off).
 - Whether to expose `model.rotation` axis choice (Y vs Z) as a GUI
   dropdown, or hardcode Y. Currently hardcoded to Y.
+- Whether the loader should ever switch back to a percentage display
+  (e.g., on a CDN that *does* send Content-Range). Currently always
+  byte-counter + indeterminate — clean and unambiguous, but the user
+  may eventually want a real progress bar if the GLB grows much past
+  26 MB.
+- Whether Single Mode / Couple Mode buttons should do anything other
+  than log to console. Currently they only set a `.selected` class.
 
 ## Misc
 - Untracked folder `outbound/` is an OpenClaw runtime temp dir — do
