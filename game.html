@@ -9,16 +9,22 @@
   html, body { margin: 0; height: 100%; overflow: hidden; background: #fff;
                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   #viewport { position: absolute; inset: 0; }
+  /* Legacy tag pill (DOM removed in c031a49; CSS kept for parity in case it
+     returns). Text now uses the canonical SLB blue, matching the rest of
+     the page-level type. */
   #tag {
     position: absolute; top: 14px; left: 14px; z-index: 10;
     background: rgba(255,255,255,0.75); backdrop-filter: blur(8px);
-    padding: 8px 12px; border-radius: 8px; font-size: 12px; color: #2a2a2a;
+    padding: 8px 12px; border-radius: 8px; font-size: 12px; color: #0014c8;
     border: 1px solid rgba(0,0,0,0.06); letter-spacing: 0.3px;
   }
-  #tag b { color: #0040ff; }
+  #tag b { color: #0014c8; }
+  /* Hint at the bottom-left of the viewport — the only piece of text
+     drawn directly over the gray scene bg, so SLB blue makes it pop
+     and ties the page to the panel/loader palette. */
   #hint {
     position: absolute; bottom: 14px; left: 14px; z-index: 10;
-    font-size: 11px; color: #888; letter-spacing: 0.5px;
+    font-size: 11px; color: #0014c8; letter-spacing: 0.5px;
   }
 
   /* SLB right-side panel — big blue area on the right.
