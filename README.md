@@ -25,8 +25,8 @@ python3 -m http.server 8000
 
 | 页面 | URL |
 |---|---|
-| 主展示 | https://amory0709.github.io/SLB100FamilyDatoFamilyDay/ |
-| 配色探索 | https://amory0709.github.io/SLB100FamilyDatoFamilyDay/palette.html |
+| 主展示 | https://amory0709.github.io/SLB100FamilyDay/ |
+| 配色探索 | https://amory0709.github.io/SLB100FamilyDay/palette.html |
 
 ## 模型出处
 

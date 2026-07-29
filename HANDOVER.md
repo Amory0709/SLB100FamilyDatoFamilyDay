@@ -7,16 +7,16 @@ controls. **The whole project is `game.html`.** That's the only file
 that matters.
 
 ## URLs
-- **Live**: https://amory0709.github.io/SLB100FamilyDatoFamilyDay/
-- **Palette explorer**: https://amory0709.github.io/SLB100FamilyDatoFamilyDay/palette.html
-- **Repo**: https://github.com/Amory0709/SLB100FamilyDatoFamilyDay
+- **Live**: https://amory0709.github.io/SLB100FamilyDay/
+- **Palette explorer**: https://amory0709.github.io/SLB100FamilyDay/palette.html
+- **Repo**: https://github.com/Amory0709/SLB100FamilyDay
 - **Default video asset** (loaded by `game.html`):
   `https://www.slb.com/static/anniversary28052026/assets/anniversity/video-home.webm`
   (transparent webm; rendered on a solid blue plate that fills behind it)
 
 ## Repo layout
 ```
-SLB100FamilyDatoFamilyDay/
+SLB100FamilyDay/
 ├── index.html             ← mirror of game.html (added 9cf8356 — GitHub
 │                            Pages serves whatever is index.html; without
 │                            it, README.md would render as the landing page)
@@ -168,7 +168,7 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
 ## Local dev
 - No build step. Just serve the folder:
   ```bash
-  cd SLB100FamilyDatoFamilyDay
+  cd SLB100FamilyDay
   python3 -m http.server 8790
   # open http://127.0.0.1:8790/index.html  (or /game.html — both work)
   ```
@@ -177,7 +177,7 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
   `/tmp/check.mjs` and run `node --check /tmp/check.mjs`. No imports
   needed for syntax-only validation.
 - Useful probes for understanding what GitHub Pages actually returns:
-  - Headers in general: `curl -sI https://amory0709.github.io/SLB100FamilyDatoFamilyDay/slb-style-oil-rig.glb`
+  - Headers in general: `curl -sI https://amory0709.github.io/SLB100FamilyDay/slb-style-oil-rig.glb`
   - Range probe: `curl -sI -H 'Range: bytes=0-0' …/slb-style-oil-rig.glb`
   - These were key to debugging the loader (see gotcha #8 above).
 
