@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SLB 100 Family Day — Game Page</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #fff;
+               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  #viewport { position: absolute; inset: 0; }
+  #tag {
+    position: absolute; top: 14px; left: 14px; z-index: 10;
+    background: rgba(255,255,255,0.75); backdrop-filter: blur(8px);
+    padding: 8px 12px; border-radius: 8px; font-size: 12px; color: #2a2a2a;
+    border: 1px solid rgba(0,0,0,0.06); letter-spacing: 0.3px;
+  }
+  #tag b { color: #0040ff; }
+  #hint {
+    position: absolute; bottom: 14px; left: 14px; z-index: 10;
+    font-size: 11px; color: #888; letter-spacing: 0.5px;
+  }
+
+  /* SLB right-side panel — big blue area on the right.
+     Layout (top → bottom):
+       text block:   "welcome to family day" + "Please select your mode"
+                     + the two mode cards (Single Mode / Couple Mode)
+       video block:  the transparent anniversary video (fills width,
+                     anchored to the bottom of the panel)
+     The 3D viewport still fills the page; this panel covers ~28vw on
+     the right with padding on all four sides. */
+  #slb-panel {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 28vw;
+    min-width: 360px;
+    background: rgb(0, 20, 200);   /* overridable via GUI → Panel Background */
+    z-index: 25;
+    padding: 56px 36px 36px;       /* all four sides padded; top extra for ⚙/× buttons */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    color: #fff;
+    font-family: 'SLB Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    gap: 18px;
+  }
+
+  .panel-text {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+  }
+  .panel-text h1 {
+    margin: 0;
+    font-size: clamp(22px, 1.9vw, 34px);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+    text-transform: lowercase;
+  }
+  .panel-text h2 {
+    margin: 4px 0 0;
+    font-size: clamp(13px, 1.0vw, 18px);
+    font-weight: 400;
+    letter-spacing: 1.8px;
+    opacity: 0.9;
+  }
+
+  .modes {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 10px;
+  }
+  .mode-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 22px 10px;
+    background: #fff;
+    color: #0014c8;
+    border: 0;
+    border-radius: 14px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .mode-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.28);
+  }
+  .mode-card.selected {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+  }
+  .mode-icon {
+    width: 52px;
+    height: 52px;
+    display: block;
+  }
+
+  .panel-video {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: auto;             /* push video to the bottom of the panel */
+  }
+  #slb-video {
+    display: block;
+    width: 100%;                  /* fill panel content width — no max-width cap */
+    height: auto;
+    max-height: 56vh;             /* sane upper bound for tall portrait videos */
+    background: transparent;      /* forced transparent — no dark player chrome */
+    border: 0; border-radius: 0; box-shadow: none; outline: none;
+  }
+
+  #slb-video-close {
+    position: absolute; top: 14px; right: 14px; z-index: 31;
+    width: 32px; height: 32px;
+    border: 0; border-radius: 50%;
+    background: #fff;
+    color: #0014c8;
+    font-size: 20px; line-height: 1; font-weight: 300;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    cursor: pointer; padding: 0;
+    pointer-events: auto;
+  }
+  #slb-video-close:hover { background: #f3f3f3; }
+  #gui-toggle {
+    position: absolute; top: 14px; left: 14px; z-index: 32;
+    width: 32px; height: 32px;
+    border: 0; border-radius: 50%;
+    background: #fff;
+    color: #0014c8;
+    font-size: 14px; line-height: 1;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    cursor: pointer; padding: 0;
+    pointer-events: auto;
+  }
+  #gui-toggle:hover { background: #f3f3f3; }
+</style>
+</head>
+<body>
+<div id="viewport"></div>
+<div id="hint">drag to orbit · scroll to zoom</div>
+
+<div id="slb-panel">
+  <button id="gui-toggle" title="toggle GUI">⚙</button>
+  <button id="slb-video-close" title="close">×</button>
+
+  <div class="panel-text">
+    <h1>welcome to family day</h1>
+    <h2>Please select your mode</h2>
+    <div class="modes">
+      <button class="mode-card" data-mode="single" type="button">
+        <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Single Mode">
+          <circle cx="32" cy="22" r="9" fill="#0014c8"/>
+          <path d="M14 50 C 14 36 50 36 50 50 L 50 54 L 14 54 Z" fill="#0014c8"/>
+        </svg>
+        <span class="mode-label">Single Mode</span>
+      </button>
+      <button class="mode-card" data-mode="couple" type="button">
+        <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Couple Mode">
+          <circle cx="22" cy="22" r="7" fill="#0014c8"/>
+          <path d="M8 50 C 8 38 36 38 36 50 L 36 54 L 8 54 Z" fill="#0014c8"/>
+          <circle cx="42" cy="22" r="7" fill="#0014c8"/>
+          <path d="M28 50 C 28 38 56 38 56 50 L 56 54 L 28 54 Z" fill="#0014c8"/>
+        </svg>
+        <span class="mode-label">Couple Mode</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="panel-video">
+    <video id="slb-video"
+           src="https://www.slb.com/static/anniversary28052026/assets/anniversity/video-home.webm"
+           autoplay muted playsinline loop preload="auto"></video>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+    "lil-gui": "https://unpkg.com/lil-gui@0.19.2/dist/lil-gui.esm.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import GUI from 'lil-gui';
+
+// ---------- Renderer ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('viewport').appendChild(renderer.domElement);
+
+// ---------- Scene ----------
+const scene = new THREE.Scene();
+
+// 背景：摄影棚软光影 — 三层叠加
+let bgTex = null;
+function makeGradientBg(baseHex) {
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 1024;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = baseHex;
+  ctx.fillRect(0, 0, 1024, 1024);
+  const glow = ctx.createRadialGradient(512, 620, 60, 512, 620, 820);
+  glow.addColorStop(0.00, 'rgba(252, 253, 254, 1.00)');
+  glow.addColorStop(0.35, 'rgba(238, 241, 244, 0.55)');
+  glow.addColorStop(0.75, 'rgba(214, 218, 222, 0.10)');
+  glow.addColorStop(1.00, 'rgba(214, 218, 222, 0.00)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, 1024, 1024);
+  const haze = ctx.createLinearGradient(0, 0, 0, 1024);
+  haze.addColorStop(0.00, 'rgba(150, 158, 166, 0.18)');
+  haze.addColorStop(0.45, 'rgba(150, 158, 166, 0.00)');
+  haze.addColorStop(1.00, 'rgba(255, 255, 255, 0.06)');
+  ctx.fillStyle = haze;
+  ctx.fillRect(0, 0, 1024, 1024);
+  if (!bgTex) {
+    bgTex = new THREE.CanvasTexture(c);
+    bgTex.colorSpace = THREE.SRGBColorSpace;
+    bgTex.minFilter = THREE.LinearFilter;
+    bgTex.magFilter = THREE.LinearFilter;
+  } else {
+    bgTex.image = c;
+    bgTex.needsUpdate = true;
+  }
+  return bgTex;
+}
+scene.background = makeGradientBg('#d1d1d1');
+
+// ---------- Camera ----------
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 2000);
+camera.position.set(7, 5, 9);
+camera.lookAt(0, 0, 0);
+
+// ---------- Lights（建筑白模 — 软影棚拍，有轮廓）----------
+const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.86);
+scene.add(hemi);
+
+const ambient = new THREE.AmbientLight(0xffffff, 0.29);
+scene.add(ambient);
+
+const key = new THREE.DirectionalLight(0xffffff, 4.05);
+key.position.set(40, 100, 50);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.near = 1;
+key.shadow.camera.far = 400;
+key.shadow.bias = -0.0009;
+key.shadow.radius = 1;
+key.shadow.blurSamples = 25;
+scene.add(key);
+// 后面 fitToObject 会按模型尺寸重写 shadow.camera 边界
+
+const fill = new THREE.DirectionalLight(0xffffff, 0.29);
+fill.position.set(-60, 40, -30);
+scene.add(fill);
+
+const rim = new THREE.DirectionalLight(0xffffff, 0.0);
+rim.position.set(-30, 60, -80);
+scene.add(rim);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0;
+
+// ---------- GUI Controller ----------
+const gui = new GUI({ title: '⚙ lighting', width: 280 });
+gui.domElement.style.zIndex = 9999;  // always above the right-side panel (z25) and its buttons (z31/32)
+gui.domElement.style.position = 'fixed';
+gui.domElement.style.top = '60px';
+gui.domElement.style.right = '14px';
+gui.hide();  // hidden by default per user request — toggle via ⚙ in panel
+
+// Toggle button (in panel) brings the GUI back
+document.getElementById('gui-toggle').addEventListener('click', () => {
+  gui.show();
+  document.getElementById('gui-toggle').style.display = 'none';
+});
+
+const params = {
+  bgColor: '#d1d1d1',
+  ambientIntensity: 0.29,
+  ambientColor: '#ffffff',
+  hemiIntensity: 0.86,
+  hemiSky: '#ffffff',
+  hemiGround: '#ffffff',
+  keyIntensity: 4.05,
+  keyColor: '#ffffff',
+  keyShadowRadius: 1,
+  keyShadowBias: -0.0009,
+  fillIntensity: 0.29,
+  fillColor: '#ffffff',
+  rimIntensity: 0.0,
+  rimColor: '#ffffff',
+  envIntensity: 0,
+  // SLB right-side panel — the panel is the backdrop now; video fills its width.
+  // videoX/videoY from the floating-overlay era are gone; only Panel Background
+  // is left as a knob (it recolors the whole panel).
+  videoBgColor: 'rgb(0, 20, 200)',  // the panel's own background color
+  autoRotate: true,                // per-frame spin of the model around its local Y axis (vertical)
+  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoBg(); },
+};
+const defaults = { ...params };
+
+function applyAll() {
+  scene.background = makeGradientBg(params.bgColor);
+  ambient.intensity = params.ambientIntensity;
+  ambient.color.set(params.ambientColor);
+  hemi.intensity = params.hemiIntensity;
+  hemi.color.set(params.hemiSky);
+  hemi.groundColor.set(params.hemiGround);
+  key.intensity = params.keyIntensity;
+  key.color.set(params.keyColor);
+  key.shadow.radius = params.keyShadowRadius;
+  key.shadow.bias = params.keyShadowBias;
+  fill.intensity = params.fillIntensity;
+  fill.color.set(params.fillColor);
+  rim.intensity = params.rimIntensity;
+  rim.color.set(params.rimColor);
+  scene.environmentIntensity = params.envIntensity;
+}
+
+// ---------- Panel positioning (controlled by GUI) ----------
+const slbPanel = document.getElementById('slb-panel');
+const slbVideo = document.getElementById('slb-video');
+
+function applyVideoBg() {
+  // Recolors the whole right-side panel (the panel IS the backdrop now).
+  slbPanel.style.background = params.videoBgColor;
+}
+
+// --- folders ---
+const fBg = gui.addFolder('Background');
+fBg.addColor(params, 'bgColor').onChange(() => { scene.background = makeGradientBg(params.bgColor); });
+
+const fAmb = gui.addFolder('Ambient');
+fAmb.add(params, 'ambientIntensity', 0, 3, 0.01).onChange(v => ambient.intensity = v);
+fAmb.addColor(params, 'ambientColor').onChange(c => ambient.color.set(c));
+
+const fHemi = gui.addFolder('Hemisphere');
+fHemi.add(params, 'hemiIntensity', 0, 3, 0.01).onChange(v => hemi.intensity = v);
+fHemi.addColor(params, 'hemiSky').onChange(c => hemi.color.set(c));
+fHemi.addColor(params, 'hemiGround').onChange(c => hemi.groundColor.set(c));
+
+const fKey = gui.addFolder('Key Light (主光)');
+fKey.add(params, 'keyIntensity', 0, 6, 0.05).onChange(v => key.intensity = v);
+fKey.addColor(params, 'keyColor').onChange(c => key.color.set(c));
+fKey.add(params, 'keyShadowRadius', 0, 20, 0.5).onChange(v => key.shadow.radius = v);
+fKey.add(params, 'keyShadowBias', -0.01, 0.01, 0.0001).onChange(v => key.shadow.bias = v);
+
+const fFill = gui.addFolder('Fill Light (补光)');
+fFill.add(params, 'fillIntensity', 0, 3, 0.01).onChange(v => fill.intensity = v);
+fFill.addColor(params, 'fillColor').onChange(c => fill.color.set(c));
+
+const fRim = gui.addFolder('Rim Light (背光)');
+fRim.add(params, 'rimIntensity', 0, 3, 0.01).onChange(v => rim.intensity = v);
+fRim.addColor(params, 'rimColor').onChange(c => rim.color.set(c));
+
+const fEnv = gui.addFolder('Environment');
+fEnv.add(params, 'envIntensity', 0, 3, 0.01).onChange(v => scene.environmentIntensity = v);
+
+const fVideo = gui.addFolder('🖼 Video');
+fVideo.addColor(params, 'videoBgColor').onChange(applyVideoBg).name('Panel Background');
+
+gui.add(params, 'autoRotate').name('🔄 Auto Rotate');
+
+gui.add(params, 'reset').name('↺ Reset All');
+
+// ---------- Pin view positions (record a sequence for assistant) ----------
+const PIN_KEY = '***';
+// Hardcoded P1 — user's initial view (set 2026-07-28)
+const P1_CAM = [-149.21, 147.49, 155.24];
+const P1_TGT = [128.93, -14.50, -43.00];
+let pinList = [];
+try { pinList = JSON.parse(localStorage.getItem(PIN_KEY) || '[]'); } catch (e) {}
+// Seed P1 in memory (so "回到 P1" works from first load, even before user records)
+if (pinList.length === 0) {
+  pinList.push({ label: 'P1', pos: [...P1_CAM], tgt: [...P1_TGT] });
+}
+
+const pinEl = document.createElement('div');  // HUD removed; no-op element kept only to avoid changing the GUI folder wiring below
+void pinEl;
+pinEl.style.cssText = 'display:none;';
+
+function updatePinHUD() {
+  /* HUD removed — pin list no longer shown on screen. Pin recording still works via GUI. */
+}
+
+function savePinList() {
+  try { localStorage.setItem(PIN_KEY, JSON.stringify(pinList)); } catch (e) {}
+}
+
+const fPin = gui.addFolder('📍 视角');
+fPin.add({
+  pin: () => {
+    const pos = camera.position.toArray();
+    const tgt = controls.target.toArray();
+    const label = `P${pinList.length + 1}`;
+    pinList.push({ label, pos: pos.map(v => +v.toFixed(4)), tgt: tgt.map(v => +v.toFixed(4)) });
+    savePinList();
+    console.log(`📍 Pinned ${label}: cam=[${pos.map(v => v.toFixed(2)).join(', ')}], tgt=[${tgt.map(v => v.toFixed(2)).join(', ')}]`);
+  }
+}, 'pin').name('📍 记下当前视角');
+fPin.add({
+  goP1: () => {
+    if (pinList.length === 0) { console.warn('📍 no pinned views yet'); return; }
+    const p = pinList[0];
+    camera.position.set(p.pos[0], p.pos[1], p.pos[2]);
+    controls.target.set(p.tgt[0], p.tgt[1], p.tgt[2]);
+    camera.updateProjectionMatrix();
+    controls.update();
+    saveCam();
+  }
+}, 'goP1').name('↩ 回到 P1');
+fPin.add({
+  clear: () => { pinList = []; savePinList(); }
+}, 'clear').name('🗑 清空序列');
+
+// ---------- Apply initial panel placement ----------
+applyVideoBg();
+
+// ---------- Controls ----------
+// Close button for the right-side panel (hides video + welcome + modes together)
+document.getElementById('slb-video-close').addEventListener('click', () => {
+  const panel = document.getElementById('slb-panel');
+  const video = document.getElementById('slb-video');
+  if (video) video.pause();
+  if (panel) panel.style.display = 'none';
+});
+
+// Mode card toggle (Single Mode / Couple Mode) — single-select; placeholder behavior.
+document.querySelectorAll('.mode-card').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-card').forEach((b) => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    console.log(`mode selected: ${btn.dataset.mode}`);
+  });
+});
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 0, 0);
+
+// ---------- Camera state persistence (localStorage) ----------
+// Save: 鼠标拖动后 100ms 防抖；Load: 模型加载完才覆盖默认 fitToObject
+const CAM_KEY = '***';
+let camSaveTimer = null;
+function saveCam() {
+  clearTimeout(camSaveTimer);
+  camSaveTimer = setTimeout(() => {
+    const cam = camera.position.toArray();
+    const tgt = controls.target.toArray();
+    try { localStorage.setItem(CAM_KEY, JSON.stringify({ cam, tgt })); } catch (e) {}
+  }, 100);
+}
+function loadCam() {
+  try {
+    const raw = localStorage.getItem(CAM_KEY);
+    if (!raw) return false;
+    const { cam, tgt } = JSON.parse(raw);
+    if (!Array.isArray(cam) || cam.length !== 3) return false;
+    camera.position.set(cam[0], cam[1], cam[2]);
+    if (Array.isArray(tgt) && tgt.length === 3) controls.target.set(tgt[0], tgt[1], tgt[2]);
+    return true;
+  } catch (e) { return false; }
+}
+controls.minDistance = 4;
+controls.maxDistance = 600;
+// Auto-rotate: spins the model around its local Z axis each frame in tick().
+
+// ---------- Load GLB ----------
+let model = null;
+const loader = new GLTFLoader();
+loader.load(
+  'slb-style-oil-rig.glb',
+  (gltf) => {
+    model = gltf.scene;
+    model.rotation.y = 0;  // 模型自然朝向 — helipad 默认在 -X 侧（视口左）
+    model.traverse(o => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+        if (o.material) o.material.envMapIntensity = 0;
+      }
+    });
+    scene.add(model);
+    fitToObject(model);
+
+    // Hardcoded default view (P1 from user, 2026-07-28)
+    camera.position.set(P1_CAM[0], P1_CAM[1], P1_CAM[2]);
+    controls.target.set(P1_TGT[0], P1_TGT[1], P1_TGT[2]);
+    controls.update();
+    camera.updateProjectionMatrix();
+    saveCam();  // persist P1 as the baseline
+
+    // If user has a saved camera from previous session, restore it
+    if (loadCam()) {
+      camera.updateProjectionMatrix();
+      controls.update();
+    }
+  },
+  (xhr) => {
+    /* loading progress — no HUD now, console only */
+    if (xhr.lengthComputable) {
+      const pct = (xhr.loaded / xhr.total * 100).toFixed(0);
+      console.log(`GLB loading… ${pct}%`);
+    }
+  },
+  (err) => {
+    console.error('GLB load failed:', err);
+  }
+);
+
+// ---------- Resize ----------
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ---------- Fit camera + key light shadow camera to object ----------
+function fitToObject(obj, padding = 1.45) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const sphere = box.getBoundingSphere(new THREE.Sphere());
+  const center = sphere.center;
+  const r = sphere.radius;
+
+  const fov = camera.fov * (Math.PI / 180);
+  const dist = (r / Math.sin(fov / 2)) * padding;
+
+  // 3/4 高位 — 与参考图一致
+  camera.position.set(
+    center.x + dist * 0.85,
+    center.y + dist * 0.30,
+    center.z + dist * 0.42
+  );
+  camera.near = Math.max(0.05, dist / 200);
+  camera.far  = dist * 40;
+  camera.updateProjectionMatrix();
+
+  controls.target.copy(center);
+  controls.minDistance = dist * 0.25;
+  controls.maxDistance = dist * 6;
+  controls.update();
+  saveCam();  // 存 fitToObject 默认位置（用户没动过 camera 的话，刷新还是这个）
+
+  // Key light shadow camera bounds — 包住模型 + 一点 padding
+  const s = r * 1.6;
+  key.shadow.camera.left   = -s;
+  key.shadow.camera.right  =  s;
+  key.shadow.camera.top    =  s;
+  key.shadow.camera.bottom = -s;
+  key.shadow.camera.near   = Math.max(0.1, dist / 10);
+  key.shadow.camera.far    = dist * 6;
+  key.shadow.camera.updateProjectionMatrix();
+}
+
+// ---------- Save camera on orbit/zoom ----------
+controls.addEventListener('change', saveCam);
+
+// ---------- Loop ----------
+let _lastTick = performance.now();
+function tick() {
+  const now = performance.now();
+  const dt = Math.min(0.1, (now - _lastTick) / 1000);  // cap dt to avoid jumps after a tab unfreeze
+  _lastTick = now;
+
+  controls.update();
+  if (params.autoRotate && model) {
+    // Model local axes per the GLB (THREE.GLTFExporter, identity matrices): Y-up.
+    // Y is the rig's vertical axis, so spinning around .y turns the helipad like
+    // a clock hand and you see every side of the rig (user confirmed this is
+    // what they wanted over the .z rocking effect).
+    model.rotation.y += dt * 0.06;  // ≈ 100 s per full rotation
+  }
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>
