@@ -183,7 +183,8 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
 
 ## Recent commits worth knowing about
 ```
-52a4b63 merge: bring remote main forward — GitHub web edits + my SLB blue work   ← HEAD
+d599178 feat: load SLBSans brand typeface via local @font-face   ← HEAD
+52a4b63 merge: bring remote main forward — GitHub web edits + my SLB blue work
 cb57add fix: drop fake percentage, show only real bytes + indeterminate bar
 b911956 tweak: loader background → SLB blue rgb(0,20,200) matching right panel
 646211b tweak: shorten loader text 'Loading 3D scene…' → 'Loading…'
@@ -248,3 +249,15 @@ dea6668 style: rotate model 180° around Y — flip helipad to view-left  (WRONG
   destroys readability. If the user later asks for literally-everything
   blue, change the loader/panel background to white first; otherwise
   the rule above holds.
+- **Font stack (from `d599178`)**: body and all visible text now use
+  `SLBSans` (no space, lowercase `b` — that's the actual @font-face
+  family name). Two weights ship as `fonts/*.woff2`:
+  - Regular (CSS 400) + Bold (CSS 500–700). Covers every weight value
+    in the current page.
+  - Other weights (Book/Light/Medium + italics) are NOT shipped.
+  - The CDN on slb.com is the source but is unusable cross-origin
+    (no `Access-Control-Allow-Origin`); local hosting is required.
+  - **License caveat**: SLBSans is SLB's brand font. Local copies
+    exist on the assumption that this site stays an internal SLB
+    Family Day artifact. If it ever ships to an external audience,
+    re-check the brand-asset license before publishing the woff2s.
