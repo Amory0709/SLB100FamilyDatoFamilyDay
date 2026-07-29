@@ -181,7 +181,8 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
 
 ## Recent commits worth knowing about
 ```
-cb57add fix: drop fake percentage, show only real bytes + indeterminate bar   ← HEAD
+3d8a401 style: switch page-level text colors to canonical SLB blue (#0014c8)   ← HEAD
+cb57add fix: drop fake percentage, show only real bytes + indeterminate bar
 b911956 tweak: loader background → SLB blue rgb(0,20,200) matching right panel
 646211b tweak: shorten loader text 'Loading 3D scene…' → 'Loading…'
 924bf99 fix: real-time byte progress on GLB load                                  [superseded by cb57add — gave 500%]
@@ -226,8 +227,22 @@ dea6668 style: rotate model 180° around Y — flip helipad to view-left  (WRONG
   26 MB.
 - Whether Single Mode / Couple Mode buttons should do anything other
   than log to console. Currently they only set a `.selected` class.
+- Whether the lil-gui debug panel's text should be restyled to SLB blue
+  (`#0014c8`). Currently uses the default dark theme; only visible when
+  the user explicitly clicks ⚙. Touching it requires overriding several
+  CSS custom props (--text-color, --title-text-color, --string-color…).
+  Leave as-is until the user asks.
 
 ## Misc
 - Untracked folder `outbound/` is an OpenClaw runtime temp dir — do
   not commit, do not delete without checking.
 - Telegram rich messages are DISABLED for this bot. Use standard HTML only.
+- **Text color rule** (from `3d8a401`): the canonical SLB blue is
+  `#0014c8` / `rgb(0,20,200)`. Every readable piece of page text pulls
+  from one color now — `#hint`, `#tag`, mode-card text, × / ⚙ glyphs,
+  and (intentionally) the same value sits behind the right panel and
+  loader as their background. **Text on SLB-blue surfaces stays white**
+  — do not flip panel/loader text to blue "for consistency", that
+  destroys readability. If the user later asks for literally-everything
+  blue, change the loader/panel background to white first; otherwise
+  the rule above holds.
