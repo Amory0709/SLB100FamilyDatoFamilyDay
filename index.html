@@ -152,11 +152,13 @@
 
   /* ---------- Loading screen ----------
      Full-viewport overlay shown until the GLB finishes streaming.
+     Background matches the right-side SLB panel (rgb(0,20,200)); all
+     foreground colors flipped to white so they read on the blue.
      Fades out 500ms after model load; removed from DOM after the
      transition so it can't intercept any future clicks. */
   #loader {
     position: fixed; inset: 0; z-index: 10000;
-    background: linear-gradient(180deg, #ffffff 0%, #eef1f4 100%);
+    background: rgb(0, 20, 200);
     display: flex; align-items: center; justify-content: center;
     transition: opacity 0.5s ease;
   }
@@ -164,32 +166,33 @@
   .loader-inner {
     display: flex; flex-direction: column; align-items: center; gap: 16px;
     font-family: 'SLB Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    color: #0014c8;
+    color: #fff;
   }
   .loader-mark {
     font-size: clamp(36px, 5vw, 56px);
     font-weight: 700; letter-spacing: 5px; line-height: 1;
+    color: #fff;
   }
   .loader-tag {
     font-size: 12px; letter-spacing: 6px; text-transform: uppercase;
-    opacity: 0.65; color: #0014c8;
+    color: rgba(255, 255, 255, 0.65);
   }
   .loader-spinner {
     margin-top: 8px;
     width: 38px; height: 38px;
-    border: 3px solid rgba(0, 20, 200, 0.18);
-    border-top-color: #0014c8;
+    border: 3px solid rgba(255, 255, 255, 0.20);
+    border-top-color: #fff;
     border-radius: 50%;
     animation: loader-spin 0.9s linear infinite;
   }
   @keyframes loader-spin { to { transform: rotate(360deg); } }
   .loader-progress {
     width: min(280px, 60vw); height: 3px;
-    background: rgba(0, 20, 200, 0.12);
+    background: rgba(255, 255, 255, 0.20);
     border-radius: 2px; overflow: hidden;
   }
   .loader-bar {
-    width: 0%; height: 100%; background: #0014c8;
+    width: 0%; height: 100%; background: #fff;
     transition: width 0.18s ease;
   }
   /* Indeterminate fallback when the server omits Content-Length
@@ -206,10 +209,11 @@
   }
   .loader-status {
     font-size: 11px; letter-spacing: 1.6px;
-    color: #5a6a7a; text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    text-transform: uppercase;
   }
   #loader.error .loader-spinner { display: none; }
-  #loader.error .loader-status { color: #c0392b; }
+  #loader.error .loader-status { color: #ff8a85; }  /* light coral reads on blue */
 </style>
 </head>
 <body>
