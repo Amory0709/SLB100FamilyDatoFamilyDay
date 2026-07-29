@@ -4,10 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SLB 100 Family Day — Game Page</title>
+<!-- Preload SLBSans Regular so the first paint uses the brand typeface
+     instead of falling back to the system font. Saves a layout shift. -->
+<link rel="preload" href="fonts/SLBSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+  /* SLBSans — Schlumberger's brand sans (fetched locally because the
+     slb.com CDN does not send CORS headers, so cross-origin @font-face
+     would fail in modern browsers). Only two weights ship: Regular
+     (mapped from CSS 400) and Bold (mapped from 500–700), which covers
+     every font-weight value used in this page. */
+  @font-face {
+    font-family: 'SLBSans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('fonts/SLBSans-Regular.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'SLBSans';
+    font-style: normal;
+    font-weight: 500 700;
+    font-display: swap;
+    src: url('fonts/SLBSans-Bold.woff2') format('woff2');
+  }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #fff;
-               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+               font-family: 'SLBSans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   #viewport { position: absolute; inset: 0; }
   /* Legacy tag pill (DOM removed in c031a49; CSS kept for parity in case it
      returns). Text now uses the canonical SLB blue, matching the rest of
@@ -48,7 +70,7 @@
     align-items: center;
     overflow-y: auto;
     color: #fff;
-    font-family: 'SLB Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'SLBSans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     gap: 18px;
   }
 
@@ -171,7 +193,7 @@
   #loader.hidden { opacity: 0; pointer-events: none; }
   .loader-inner {
     display: flex; flex-direction: column; align-items: center; gap: 16px;
-    font-family: 'SLB Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'SLBSans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #fff;
   }
   .loader-mark {
