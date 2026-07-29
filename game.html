@@ -149,9 +149,67 @@
     pointer-events: auto;
   }
   #gui-toggle:hover { background: #f3f3f3; }
+
+  /* ---------- Loading screen ----------
+     Full-viewport overlay shown until the GLB finishes streaming.
+     Fades out 500ms after model load; removed from DOM after the
+     transition so it can't intercept any future clicks. */
+  #loader {
+    position: fixed; inset: 0; z-index: 10000;
+    background: linear-gradient(180deg, #ffffff 0%, #eef1f4 100%);
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.5s ease;
+  }
+  #loader.hidden { opacity: 0; pointer-events: none; }
+  .loader-inner {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    font-family: 'SLB Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #0014c8;
+  }
+  .loader-mark {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 700; letter-spacing: 5px; line-height: 1;
+  }
+  .loader-tag {
+    font-size: 12px; letter-spacing: 6px; text-transform: uppercase;
+    opacity: 0.65; color: #0014c8;
+  }
+  .loader-spinner {
+    margin-top: 8px;
+    width: 38px; height: 38px;
+    border: 3px solid rgba(0, 20, 200, 0.18);
+    border-top-color: #0014c8;
+    border-radius: 50%;
+    animation: loader-spin 0.9s linear infinite;
+  }
+  @keyframes loader-spin { to { transform: rotate(360deg); } }
+  .loader-progress {
+    width: min(280px, 60vw); height: 3px;
+    background: rgba(0, 20, 200, 0.12);
+    border-radius: 2px; overflow: hidden;
+  }
+  .loader-bar {
+    width: 0%; height: 100%; background: #0014c8;
+    transition: width 0.18s ease;
+  }
+  .loader-status {
+    font-size: 11px; letter-spacing: 1.6px;
+    color: #5a6a7a; text-transform: uppercase;
+  }
+  #loader.error .loader-spinner { display: none; }
+  #loader.error .loader-status { color: #c0392b; }
 </style>
 </head>
 <body>
+<div id="loader">
+  <div class="loader-inner">
+    <div class="loader-mark">SLB 100</div>
+    <div class="loader-tag">Family Day</div>
+    <div class="loader-spinner" aria-hidden="true"></div>
+    <div class="loader-progress"><div class="loader-bar" id="loader-bar"></div></div>
+    <div class="loader-status" id="loader-status">Loading 3D scene…</div>
+  </div>
+</div>
 <div id="viewport"></div>
 <div id="hint">drag to orbit · scroll to zoom</div>
 
@@ -498,8 +556,11 @@ controls.maxDistance = 600;
 
 // ---------- Load GLB ----------
 let model = null;
-const loader = new GLTFLoader();
-loader.load(
+const loaderEl  = document.getElementById('loader');
+const loaderBar = document.getElementById('loader-bar');
+const loaderStatus = document.getElementById('loader-status');
+const gltfLoader = new GLTFLoader();
+gltfLoader.load(
   'slb-style-oil-rig.glb',
   (gltf) => {
     model = gltf.scene;
@@ -526,16 +587,31 @@ loader.load(
       camera.updateProjectionMatrix();
       controls.update();
     }
+
+    // Hide loading screen — wait one frame so the first render actually
+    // has pixels before we fade; otherwise the viewer sees a black flash.
+    requestAnimationFrame(() => {
+      loaderBar.style.width = '100%';
+      loaderStatus.textContent = 'Ready';
+      setTimeout(() => {
+        loaderEl.classList.add('hidden');
+        setTimeout(() => loaderEl.remove(), 600);  // match CSS transition
+      }, 120);
+    });
   },
   (xhr) => {
-    /* loading progress — no HUD now, console only */
     if (xhr.lengthComputable) {
-      const pct = (xhr.loaded / xhr.total * 100).toFixed(0);
-      console.log(`GLB loading… ${pct}%`);
+      const pct = (xhr.loaded / xhr.total) * 100;
+      loaderBar.style.width = pct.toFixed(1) + '%';
+      loaderStatus.textContent = `Loading 3D scene… ${pct.toFixed(0)}%`;
+    } else {
+      loaderStatus.textContent = 'Loading 3D scene…';
     }
   },
   (err) => {
     console.error('GLB load failed:', err);
+    loaderEl.classList.add('error');
+    loaderStatus.textContent = 'Failed to load 3D model — reload the page.';
   }
 );
 
