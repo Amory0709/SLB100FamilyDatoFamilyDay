@@ -192,6 +192,18 @@
     width: 0%; height: 100%; background: #0014c8;
     transition: width 0.18s ease;
   }
+  /* Indeterminate fallback when the server omits Content-Length
+     (xhr.lengthComputable=false). The bar slides L→R continuously
+     so the user still sees motion during the download. */
+  .loader-progress.indeterminate .loader-bar {
+    width: 35% !important;
+    animation: loader-indet 1.2s ease-in-out infinite;
+  }
+  @keyframes loader-indet {
+    0%   { transform: translateX(-110%); }
+    50%  { transform: translateX(220%); }
+    100% { transform: translateX(220%); }
+  }
   .loader-status {
     font-size: 11px; letter-spacing: 1.6px;
     color: #5a6a7a; text-transform: uppercase;
@@ -558,62 +570,150 @@ controls.maxDistance = 600;
 let model = null;
 const loaderEl  = document.getElementById('loader');
 const loaderBar = document.getElementById('loader-bar');
+const loaderBarWrap = loaderBar.parentElement;  // .loader-progress
 const loaderStatus = document.getElementById('loader-status');
-const gltfLoader = new GLTFLoader();
-gltfLoader.load(
-  'slb-style-oil-rig.glb',
-  (gltf) => {
-    model = gltf.scene;
-    model.rotation.y = 0;  // 模型自然朝向 — helipad 默认在 -X 侧（视口左）
-    model.traverse(o => {
-      if (o.isMesh) {
-        o.castShadow = true;
-        o.receiveShadow = true;
-        if (o.material) o.material.envMapIntensity = 0;
+
+/* GitHub Pages often omits Content-Length for binary .glb (no
+   length to compute against). We do a HEAD probe to learn the true
+   file size up front, then drive the bar off raw bytes received —
+   so we get an accurate percentage even when the streaming XHR's
+   own lengthComputable is false. Indeterminate animation takes over
+   if the HEAD probe itself fails. */
+async function probeSize(url) {
+  try {
+    const r = await fetch(url, { method: 'HEAD' });
+    const cl = r.headers.get('Content-Length');
+    return cl ? parseInt(cl, 10) : null;
+  } catch (e) {
+    return null;
+  }
+}
+async function fetchWithProgress(url, totalSize, onProgress) {
+  const r = await fetch(url);
+  if (!r.ok || !r.body) throw new Error(`HTTP ${r.status}`);
+  const reader = r.body.getReader();
+  let received = 0;
+  const chunks = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.byteLength;
+    onProgress(received, totalSize);
+  }
+  // Reassemble into a Blob URL so GLTFLoader can fetch it normally.
+  return URL.createObjectURL(new Blob(chunks, { type: 'model/gltf-binary' }));
+}
+
+async function loadModel() {
+  const url = 'slb-style-oil-rig.glb';
+  loaderStatus.textContent = 'Connecting…';
+  let src = url, usingBytes = false;
+
+  /* GitHub Pages strips Content-Length from both HEAD and GET on .glb,
+     so we cannot derive an honest percentage from server-reported totals.
+     Approach: always stream via fetch + reader, count bytes ourselves,
+     and show "X.X MB downloaded" — a true counter rather than a guess.
+     We also try a Range request on the *first* response to learn the
+     real file size from Content-Range; if that works we get an accurate
+     MB/total display, otherwise just a running counter. */
+  let totalSize = null;
+  try {
+    const probe = await fetch(url, { headers: { Range: 'bytes=0-0' } });
+    if (probe.ok) {
+      const cr = probe.headers.get('Content-Range');     // "bytes 0-0/26036208"
+      if (cr) {
+        const m = cr.match(/\/(\d+)$/);
+        if (m) totalSize = parseInt(m[1], 10);
       }
-    });
-    scene.add(model);
-    fitToObject(model);
-
-    // Hardcoded default view (P1 from user, 2026-07-28)
-    camera.position.set(P1_CAM[0], P1_CAM[1], P1_CAM[2]);
-    controls.target.set(P1_TGT[0], P1_TGT[1], P1_TGT[2]);
-    controls.update();
-    camera.updateProjectionMatrix();
-    saveCam();  // persist P1 as the baseline
-
-    // If user has a saved camera from previous session, restore it
-    if (loadCam()) {
-      camera.updateProjectionMatrix();
-      controls.update();
+      // Don't keep this open — discard the body
+      try { await probe.body?.cancel(); } catch {}
     }
+  } catch (e) { /* fall through with totalSize=null */ }
 
-    // Hide loading screen — wait one frame so the first render actually
-    // has pixels before we fade; otherwise the viewer sees a black flash.
-    requestAnimationFrame(() => {
-      loaderBar.style.width = '100%';
-      loaderStatus.textContent = 'Ready';
-      setTimeout(() => {
-        loaderEl.classList.add('hidden');
-        setTimeout(() => loaderEl.remove(), 600);  // match CSS transition
-      }, 120);
-    });
-  },
-  (xhr) => {
-    if (xhr.lengthComputable) {
-      const pct = (xhr.loaded / xhr.total) * 100;
-      loaderBar.style.width = pct.toFixed(1) + '%';
-      loaderStatus.textContent = `Loading 3D scene… ${pct.toFixed(0)}%`;
-    } else {
+  if (totalSize) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok || !r.body) throw new Error(`HTTP ${r.status}`);
+      const reader = r.body.getReader();
+      const chunks = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        received += value.byteLength;
+        const mb = (received / 1048576).toFixed(1);
+        const tm = (totalSize / 1048576).toFixed(1);
+        const pct = Math.min(100, (received / totalSize) * 100);
+        loaderBar.style.width = pct.toFixed(1) + '%';
+        loaderStatus.textContent = `Loading 3D scene… ${mb} / ${tm} MB`;
+      }
+      src = URL.createObjectURL(new Blob(chunks, { type: 'model/gltf-binary' }));
+      usingBytes = true;
+    } catch (e) {
+      console.warn('byte-progress stream failed, falling back to direct load', e);
+      // Drop back to indeterminate animation + plain GLTFLoader.load
+      loaderBarWrap.classList.add('indeterminate');
       loaderStatus.textContent = 'Loading 3D scene…';
     }
-  },
-  (err) => {
-    console.error('GLB load failed:', err);
-    loaderEl.classList.add('error');
-    loaderStatus.textContent = 'Failed to load 3D model — reload the page.';
+  } else {
+    // Server gave nothing useful — at least show a moving bar.
+    loaderBarWrap.classList.add('indeterminate');
+    loaderStatus.textContent = 'Loading 3D scene…';
   }
-);
+
+  const gltfLoader = new GLTFLoader();
+  gltfLoader.load(
+    src,
+    (gltf) => {
+      model = gltf.scene;
+      model.rotation.y = 0;  // 模型自然朝向 — helipad 默认在 -X 侧（视口左）
+      model.traverse(o => {
+        if (o.isMesh) {
+          o.castShadow = true;
+          o.receiveShadow = true;
+          if (o.material) o.material.envMapIntensity = 0;
+        }
+      });
+      scene.add(model);
+      fitToObject(model);
+
+      // Hardcoded default view (P1 from user, 2026-07-28)
+      camera.position.set(P1_CAM[0], P1_CAM[1], P1_CAM[2]);
+      controls.target.set(P1_TGT[0], P1_TGT[1], P1_TGT[2]);
+      controls.update();
+      camera.updateProjectionMatrix();
+      saveCam();  // persist P1 as the baseline
+
+      // If user has a saved camera from previous session, restore it
+      if (loadCam()) {
+        camera.updateProjectionMatrix();
+        controls.update();
+      }
+      if (usingBytes) URL.revokeObjectURL(src);  // free blob
+
+      // Hide loading screen — wait one frame so the first render
+      // actually has pixels before we fade; otherwise we see black.
+      requestAnimationFrame(() => {
+        if (usingBytes) loaderBar.style.width = '100%';
+        loaderStatus.textContent = 'Ready';
+        setTimeout(() => {
+          loaderEl.classList.add('hidden');
+          setTimeout(() => loaderEl.remove(), 600);  // match CSS transition
+        }, 120);
+      });
+    },
+    undefined,  // xhr progress — we already tracked bytes ourselves
+    (err) => {
+      console.error('GLB load failed:', err);
+      loaderEl.classList.add('error');
+      loaderStatus.textContent = 'Failed to load 3D model — reload the page.';
+    }
+  );
+}
+
+loadModel();
 
 // ---------- Resize ----------
 addEventListener('resize', () => {
