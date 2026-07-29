@@ -84,11 +84,13 @@
   }
   .panel-text h1 {
     margin: 0;
-    font-size: clamp(30px, 2.6vw, 46px);
+    font-size: clamp(34px, 4vw, 56px);
     font-weight: 600;
     letter-spacing: 0.3px;
     line-height: 1.2;
-    text-transform: lowercase;
+    /* text-transform removed in style/welcome-cap-modes-above-video:
+       heading now shows the source casing so "Welcome to family day"
+       renders with the W capitalised while the rest stays lowercase. */
   }
   .panel-text h2 {
     margin: 14px 0 0;
@@ -103,7 +105,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
-    margin-top: 10px;
+    /* margin-top auto pushes .modes to the bottom of the panel,
+       right above the video. .panel-video no longer carries the
+       margin-top auto (it sits naturally under .modes now). */
+    margin-top: auto;
   }
   .mode-card {
     display: flex;
@@ -142,7 +147,9 @@
     width: 100%;
     display: flex;
     justify-content: center;
-    margin-top: auto;             /* push video to the bottom of the panel */
+    /* margin-top auto removed in style/welcome-cap-modes-above-video:
+       .modes now owns the bottom-anchoring margin so the mode cards
+       sit directly above the video instead of the heading. */
   }
   #slb-video {
     display: block;
@@ -262,26 +269,27 @@
   <button id="slb-video-close" title="close">×</button>
 
   <div class="panel-text">
-    <h1>welcome to family day</h1>
+    <h1>Welcome to family day</h1>
     <h2>Please select your mode</h2>
-    <div class="modes">
-      <button class="mode-card" data-mode="single" type="button">
-        <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Single Mode">
-          <circle cx="32" cy="22" r="9" fill="#0014c8"/>
-          <path d="M14 50 C 14 36 50 36 50 50 L 50 54 L 14 54 Z" fill="#0014c8"/>
-        </svg>
-        <span class="mode-label">Single Mode</span>
-      </button>
-      <button class="mode-card" data-mode="couple" type="button">
-        <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Couple Mode">
-          <circle cx="22" cy="22" r="7" fill="#0014c8"/>
-          <path d="M8 50 C 8 38 36 38 36 50 L 36 54 L 8 54 Z" fill="#0014c8"/>
-          <circle cx="42" cy="22" r="7" fill="#0014c8"/>
-          <path d="M28 50 C 28 38 56 38 56 50 L 56 54 L 28 54 Z" fill="#0014c8"/>
-        </svg>
-        <span class="mode-label">Couple Mode</span>
-      </button>
-    </div>
+  </div>
+
+  <div class="modes">
+    <button class="mode-card" data-mode="single" type="button">
+      <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Single Mode">
+        <circle cx="32" cy="22" r="9" fill="#0014c8"/>
+        <path d="M14 50 C 14 36 50 36 50 50 L 50 54 L 14 54 Z" fill="#0014c8"/>
+      </svg>
+      <span class="mode-label">Single Mode</span>
+    </button>
+    <button class="mode-card" data-mode="couple" type="button">
+      <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Couple Mode">
+        <circle cx="22" cy="22" r="7" fill="#0014c8"/>
+        <path d="M8 50 C 8 38 36 38 36 50 L 36 54 L 8 54 Z" fill="#0014c8"/>
+        <circle cx="42" cy="22" r="7" fill="#0014c8"/>
+        <path d="M28 50 C 28 38 56 38 56 50 L 56 54 L 28 54 Z" fill="#0014c8"/>
+      </svg>
+      <span class="mode-label">Couple Mode</span>
+    </button>
   </div>
 
   <div class="panel-video">
