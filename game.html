@@ -219,7 +219,7 @@
     <div class="loader-tag">Family Day</div>
     <div class="loader-spinner" aria-hidden="true"></div>
     <div class="loader-progress"><div class="loader-bar" id="loader-bar"></div></div>
-    <div class="loader-status" id="loader-status">Loading 3D scene…</div>
+    <div class="loader-status" id="loader-status">Loading…</div>
   </div>
 </div>
 <div id="viewport"></div>
@@ -647,7 +647,7 @@ async function loadModel() {
         const tm = (totalSize / 1048576).toFixed(1);
         const pct = Math.min(100, (received / totalSize) * 100);
         loaderBar.style.width = pct.toFixed(1) + '%';
-        loaderStatus.textContent = `Loading 3D scene… ${mb} / ${tm} MB`;
+        loaderStatus.textContent = `Loading… ${mb} / ${tm} MB`;
       }
       src = URL.createObjectURL(new Blob(chunks, { type: 'model/gltf-binary' }));
       usingBytes = true;
