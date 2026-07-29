@@ -183,7 +183,7 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
 
 ## Recent commits worth knowing about
 ```
-3d8a401 style: switch page-level text colors to canonical SLB blue (#0014c8)   ← HEAD
+52a4b63 merge: bring remote main forward — GitHub web edits + my SLB blue work   ← HEAD
 cb57add fix: drop fake percentage, show only real bytes + indeterminate bar
 b911956 tweak: loader background → SLB blue rgb(0,20,200) matching right panel
 646211b tweak: shorten loader text 'Loading 3D scene…' → 'Loading…'
