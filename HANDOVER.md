@@ -183,7 +183,8 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
 
 ## Recent commits worth knowing about
 ```
-d599178 feat: load SLBSans brand typeface via local @font-face   ← HEAD
+bd17bf4 style: bump welcome heading size and add breathing room above mode prompt   ← HEAD
+d599178 feat: load SLBSans brand typeface via local @font-face
 52a4b63 merge: bring remote main forward — GitHub web edits + my SLB blue work
 cb57add fix: drop fake percentage, show only real bytes + indeterminate bar
 b911956 tweak: loader background → SLB blue rgb(0,20,200) matching right panel
