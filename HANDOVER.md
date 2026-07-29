@@ -8,6 +8,7 @@ that matters.
 
 ## URLs
 - **Live**: https://amory0709.github.io/SLB100FamilyDatoFamilyDay/
+- **Palette explorer**: https://amory0709.github.io/SLB100FamilyDatoFamilyDay/palette.html
 - **Repo**: https://github.com/Amory0709/SLB100FamilyDatoFamilyDay
 - **Default video asset** (loaded by `game.html`):
   `https://www.slb.com/static/anniversary28052026/assets/anniversity/video-home.webm`
@@ -21,6 +22,7 @@ SLB100FamilyDatoFamilyDay/
 │                            it, README.md would render as the landing page)
 ├── game.html              ← THE WHOLE APP (single source of truth; ~760 lines,
 │                            all HTML + CSS + ES-module JS inline)
+├── palette.html           ← macaron palette explorer (6 accent directions on #0014C8)
 ├── slb-style-oil-rig.glb  ← 3D model (~26 MB) — referenced by loader
 ├── HANDOVER.md            ← this file
 ├── README.md              ← stale (still describes pre-GLB step 1) — read HANDOVER
