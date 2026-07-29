@@ -7,8 +7,8 @@ controls. **The whole project is `game.html`.** That's the only file
 that matters.
 
 ## URLs
-- **Live**: https://amory0709.github.io/SLB100FamilyDatoFamilyDay/
-- **Repo**: https://github.com/Amory0709/SLB100FamilyDatoFamilyDay
+- **Live**: https://amory0709.github.io/SLB100FamilyDay/
+- **Repo**: https://github.com/Amory0709/SLB100FamilyDay
 - **Default video asset** (loaded by `game.html`):
   `https://www.slb.com/static/anniversary28052026/assets/anniversity/video-home.webm`
   (transparent webm; rendered on a solid blue plate that fills behind it)
@@ -175,7 +175,7 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
   `/tmp/check.mjs` and run `node --check /tmp/check.mjs`. No imports
   needed for syntax-only validation.
 - Useful probes for understanding what GitHub Pages actually returns:
-  - Headers in general: `curl -sI https://amory0709.github.io/SLB100FamilyDatoFamilyDay/slb-style-oil-rig.glb`
+  - Headers in general: `curl -sI https://amory0709.github.io/SLB100FamilyDay/slb-style-oil-rig.glb`
   - Range probe: `curl -sI -H 'Range: bytes=0-0' …/slb-style-oil-rig.glb`
   - These were key to debugging the loader (see gotcha #8 above).
 
