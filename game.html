@@ -22,62 +22,51 @@
   }
 
   /* SLB right-side panel — big blue area on the right.
-     Contains (top→bottom): the transparent anniversary video, "welcome to
-     family day" headline, "请选择你的模式" subhead, and the two mode cards
-     (单人模式 / 双人模式). The 3D viewport still fills the page; this panel
-     just covers ~28vw on the right. */
+     Layout (top → bottom):
+       text block:   "welcome to family day" + "Please select your mode"
+                     + the two mode cards (Single Mode / Couple Mode)
+       video block:  the transparent anniversary video (fills width,
+                     anchored to the bottom of the panel)
+     The 3D viewport still fills the page; this panel covers ~28vw on
+     the right with padding on all four sides. */
   #slb-panel {
     position: fixed;
     top: 0; right: 0; bottom: 0;
     width: 28vw;
-    min-width: 340px;
-    background: rgb(0, 20, 200);   /* overridable via 🖼 视频 → 背景色 in the GUI */
+    min-width: 360px;
+    background: rgb(0, 20, 200);   /* overridable via GUI → Panel Background */
     z-index: 25;
-    padding: 64px 24px 28px;       /* top padding leaves room for ⚙ / × buttons */
+    padding: 56px 36px 36px;       /* all four sides padded; top extra for ⚙/× buttons */
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow-y: auto;
     color: #fff;
-    font-family: inherit;
-  }
-  .panel-video {
-    position: relative;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 8px;
-  }
-  #slb-video {
-    display: block;
-    width: auto;
-    max-width: 100%;
-    max-height: 240px;            /* smaller than before — panel is narrower */
-    background: transparent;      /* 强制透明 — no black <video> chrome */
-    border: 0; border-radius: 0; box-shadow: none; outline: none;
+    font-family: 'SLB Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    gap: 18px;
   }
 
   .panel-text {
-    margin-top: auto;             /* push the text block to the bottom of the panel */
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     text-align: center;
   }
   .panel-text h1 {
     margin: 0;
-    font-size: clamp(20px, 1.7vw, 30px);
+    font-size: clamp(22px, 1.9vw, 34px);
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     line-height: 1.2;
+    text-transform: lowercase;
   }
   .panel-text h2 {
-    margin: 4px 0 4px;
-    font-size: clamp(12px, 0.85vw, 16px);
+    margin: 4px 0 0;
+    font-size: clamp(13px, 1.0vw, 18px);
     font-weight: 400;
-    letter-spacing: 2px;
+    letter-spacing: 1.8px;
     opacity: 0.9;
   }
 
@@ -85,23 +74,23 @@
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 6px;
+    gap: 14px;
+    margin-top: 10px;
   }
   .mode-card {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 18px 8px;
+    gap: 10px;
+    padding: 22px 10px;
     background: #fff;
     color: #0014c8;
     border: 0;
-    border-radius: 12px;
+    border-radius: 14px;
     cursor: pointer;
     font: inherit;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.5px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.18);
@@ -116,9 +105,24 @@
     outline-offset: 2px;
   }
   .mode-icon {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     display: block;
+  }
+
+  .panel-video {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: auto;             /* push video to the bottom of the panel */
+  }
+  #slb-video {
+    display: block;
+    width: 100%;                  /* fill panel content width — no max-width cap */
+    height: auto;
+    max-height: 56vh;             /* sane upper bound for tall portrait videos */
+    background: transparent;      /* forced transparent — no dark player chrome */
+    border: 0; border-radius: 0; box-shadow: none; outline: none;
   }
 
   #slb-video-close {
@@ -155,33 +159,33 @@
   <button id="gui-toggle" title="toggle GUI">⚙</button>
   <button id="slb-video-close" title="close">×</button>
 
-  <div class="panel-video">
-    <video id="slb-video"
-           src="https://www.slb.com/static/anniversary28052026/assets/anniversity/video-home.webm"
-           autoplay muted playsinline loop preload="auto"></video>
-  </div>
-
   <div class="panel-text">
     <h1>welcome to family day</h1>
-    <h2>请选择你的模式</h2>
+    <h2>Please select your mode</h2>
     <div class="modes">
       <button class="mode-card" data-mode="single" type="button">
-        <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="单人模式">
+        <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Single Mode">
           <circle cx="32" cy="22" r="9" fill="#0014c8"/>
           <path d="M14 50 C 14 36 50 36 50 50 L 50 54 L 14 54 Z" fill="#0014c8"/>
         </svg>
-        <span class="mode-label">单人模式</span>
+        <span class="mode-label">Single Mode</span>
       </button>
       <button class="mode-card" data-mode="couple" type="button">
-        <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="双人模式">
+        <svg class="mode-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Couple Mode">
           <circle cx="22" cy="22" r="7" fill="#0014c8"/>
           <path d="M8 50 C 8 38 36 38 36 50 L 36 54 L 8 54 Z" fill="#0014c8"/>
           <circle cx="42" cy="22" r="7" fill="#0014c8"/>
           <path d="M28 50 C 28 38 56 38 56 50 L 56 54 L 28 54 Z" fill="#0014c8"/>
         </svg>
-        <span class="mode-label">双人模式</span>
+        <span class="mode-label">Couple Mode</span>
       </button>
     </div>
+  </div>
+
+  <div class="panel-video">
+    <video id="slb-video"
+           src="https://www.slb.com/static/anniversary28052026/assets/anniversity/video-home.webm"
+           autoplay muted playsinline loop preload="auto"></video>
   </div>
 </div>
 
@@ -288,13 +292,13 @@ scene.environmentIntensity = 0;
 
 // ---------- GUI Controller ----------
 const gui = new GUI({ title: '⚙ lighting', width: 280 });
-gui.domElement.style.zIndex = 9999;  // always above video overlay (z25) and its buttons (z31/32)
+gui.domElement.style.zIndex = 9999;  // always above the right-side panel (z25) and its buttons (z31/32)
 gui.domElement.style.position = 'fixed';
 gui.domElement.style.top = '60px';
 gui.domElement.style.right = '14px';
-gui.hide();  // hidden by default per user request — toggle via ⚙ in header
+gui.hide();  // hidden by default per user request — toggle via ⚙ in panel
 
-// Toggle button (in blue header) brings the GUI back
+// Toggle button (in panel) brings the GUI back
 document.getElementById('gui-toggle').addEventListener('click', () => {
   gui.show();
   document.getElementById('gui-toggle').style.display = 'none';
@@ -316,13 +320,12 @@ const params = {
   rimIntensity: 0.0,
   rimColor: '#ffffff',
   envIntensity: 0,
-  // SLB right-side panel — video lives inside the blue panel; size + panel color
-  // are the only knobs left (videoX/videoY from the floating-overlay era are gone).
-  videoHeight: 240,   // px — max-height of the <video>, width comes from aspect ratio
-  videoMaxWidth: 90,  // % of panel width — caps the video's width regardless of aspect
+  // SLB right-side panel — the panel is the backdrop now; video fills its width.
+  // videoX/videoY from the floating-overlay era are gone; only Panel Background
+  // is left as a knob (it recolors the whole panel).
   videoBgColor: 'rgb(0, 20, 200)',  // the panel's own background color
   autoRotate: true,                // per-frame spin of the model around its local Y axis (vertical)
-  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoPlacement(); applyVideoBg(); },
+  reset: () => { Object.assign(params, defaults); gui.controllersRecursive().forEach(c => c.updateDisplay()); applyAll(); applyVideoBg(); },
 };
 const defaults = { ...params };
 
@@ -344,16 +347,9 @@ function applyAll() {
   scene.environmentIntensity = params.envIntensity;
 }
 
-// ---------- Panel + video overlay positioning (controlled by GUI) ----------
+// ---------- Panel positioning (controlled by GUI) ----------
 const slbPanel = document.getElementById('slb-panel');
 const slbVideo = document.getElementById('slb-video');
-
-function applyVideoPlacement() {
-  // Video now lives inside the panel (top, centered). Only size is tweakable;
-  // videoX/videoY were removed when the layout switched from floating overlay to panel.
-  slbVideo.style.maxHeight = `${params.videoHeight}px`;
-  slbVideo.style.maxWidth = `${params.videoMaxWidth}%`;
-}
 
 function applyVideoBg() {
   // Recolors the whole right-side panel (the panel IS the backdrop now).
@@ -390,14 +386,12 @@ fRim.addColor(params, 'rimColor').onChange(c => rim.color.set(c));
 const fEnv = gui.addFolder('Environment');
 fEnv.add(params, 'envIntensity', 0, 3, 0.01).onChange(v => scene.environmentIntensity = v);
 
-const fVideo = gui.addFolder('🖼 视频');
-fVideo.add(params, 'videoHeight',  100,   600, 10).onChange(applyVideoPlacement).name('高度 (px)');
-fVideo.add(params, 'videoMaxWidth', 40,   100,  5).onChange(applyVideoPlacement).name('最大宽度 (% 面板)');
-fVideo.addColor(params, 'videoBgColor').onChange(applyVideoBg).name('面板背景色');
+const fVideo = gui.addFolder('🖼 Video');
+fVideo.addColor(params, 'videoBgColor').onChange(applyVideoBg).name('Panel Background');
 
-gui.add(params, 'autoRotate').name('🔄 自动旋转');
+gui.add(params, 'autoRotate').name('🔄 Auto Rotate');
 
-gui.add(params, 'reset').name('↺ 重置全部');
+gui.add(params, 'reset').name('↺ Reset All');
 
 // ---------- Pin view positions (record a sequence for assistant) ----------
 const PIN_KEY = '***';
@@ -449,8 +443,7 @@ fPin.add({
   clear: () => { pinList = []; savePinList(); }
 }, 'clear').name('🗑 清空序列');
 
-// ---------- Apply initial video placement (matches CSS defaults; runs once on load) ----------
-applyVideoPlacement();
+// ---------- Apply initial panel placement ----------
 applyVideoBg();
 
 // ---------- Controls ----------
@@ -462,7 +455,7 @@ document.getElementById('slb-video-close').addEventListener('click', () => {
   if (panel) panel.style.display = 'none';
 });
 
-// Mode card toggle (单人模式 / 双人模式) — single-select; placeholder behavior.
+// Mode card toggle (Single Mode / Couple Mode) — single-select; placeholder behavior.
 document.querySelectorAll('.mode-card').forEach((btn) => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.mode-card').forEach((b) => b.classList.remove('selected'));
@@ -470,6 +463,7 @@ document.querySelectorAll('.mode-card').forEach((btn) => {
     console.log(`mode selected: ${btn.dataset.mode}`);
   });
 });
+
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
@@ -477,7 +471,7 @@ controls.target.set(0, 0, 0);
 
 // ---------- Camera state persistence (localStorage) ----------
 // Save: 鼠标拖动后 100ms 防抖；Load: 模型加载完才覆盖默认 fitToObject
-const CAM_KEY = 'slb100_cam_v1';
+const CAM_KEY = '***';
 let camSaveTimer = null;
 function saveCam() {
   clearTimeout(camSaveTimer);
