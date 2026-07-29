@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLB 100 Family Day · Palette Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --color-white: #ffffff;
+      --color-text: #2d3448;
+      --color-primary: #0014c8;
+      --color-primary-rgb: 0, 20, 200;
+      --color-bubble-pink: #ff8fab;
+      --color-candy-yellow: #ffe66d;
+      --color-mint: #7eedd0;
+      --color-apricot: #ffb480;
+      --color-bg-pink: #fff0f4;
+      --color-bg-yellow: #fffbe6;
+      --color-bg-mint: #eefcf7;
+      --color-bg-apricot: #fff4ea;
+      --color-border: rgba(var(--color-primary-rgb), 0.2);
+      --color-shadow-sticker: 0 4px 0 rgba(var(--color-primary-rgb), 0.15);
+      --radius-playful: 16px;
+      --radius-pill: 999px;
+      --font-display: "Fredoka", system-ui, sans-serif;
+      --font-body: "DM Sans", system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      color: var(--color-text);
+      background: var(--color-white);
+      line-height: 1.6;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 100;
+      padding: 0.75rem 1rem;
+      background: var(--color-primary);
+      color: var(--color-white);
+      text-decoration: none;
+      border-radius: 0 0 var(--radius-playful) 0;
+    }
+
+    .skip-link:focus { left: 0; }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    .hero {
+      position: relative;
+      padding: 3rem 2rem;
+      border: 3px solid var(--color-border);
+      border-radius: calc(var(--radius-playful) + 8px);
+      background: linear-gradient(135deg, var(--color-bg-mint) 0%, var(--color-bg-yellow) 45%, var(--color-bg-pink) 100%);
+      overflow: hidden;
+      box-shadow: var(--color-shadow-sticker);
+    }
+
+    .hero__dots {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      background-image:
+        radial-gradient(circle, var(--color-bubble-pink) 6px, transparent 6px),
+        radial-gradient(circle, var(--color-candy-yellow) 5px, transparent 5px),
+        radial-gradient(circle, var(--color-primary) 4px, transparent 4px);
+      background-size: 120px 120px, 90px 90px, 70px 70px;
+      background-position: 20px 30px, 60px 80px, 100px 10px;
+    }
+
+    .hero__content { position: relative; max-width: 680px; }
+
+    .hero__badge {
+      display: inline-block;
+      margin: 0 0 1rem;
+      padding: 0.35rem 0.85rem;
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      background: var(--color-white);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-pill);
+    }
+
+    .hero h1 {
+      margin: 0 0 0.75rem;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--color-primary);
+    }
+
+    .hero p { margin: 0; font-size: 1.05rem; max-width: 58ch; }
+
+    section { margin-top: 3rem; }
+
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--color-primary);
+    }
+
+    .section-header p { margin: 0; font-size: 0.95rem; opacity: 0.85; }
+
+    /* Palette picker */
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .palette-option {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      padding: 0.85rem;
+      text-align: left;
+      font-family: inherit;
+      color: var(--color-text);
+      background: var(--color-white);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-playful);
+      cursor: pointer;
+      box-shadow: 0 2px 0 rgba(var(--color-primary-rgb), 0.08);
+      transition: transform 0.12s ease, border-color 0.12s ease;
+    }
+
+    .palette-option:hover { transform: translateY(-1px); }
+
+    .palette-option[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      box-shadow: var(--color-shadow-sticker);
+    }
+
+    .palette-option:focus-visible {
+      outline: 3px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .palette-option__dots {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .palette-option__dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .palette-option__name {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--color-primary);
+    }
+
+    .palette-option__desc {
+      margin: 0;
+      font-size: 0.78rem;
+      opacity: 0.75;
+      line-height: 1.35;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+
+    .swatch {
+      display: flex;
+      flex-direction: column;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-playful);
+      overflow: hidden;
+      background: var(--color-white);
+      box-shadow: var(--color-shadow-sticker);
+      transition: transform 0.15s ease;
+    }
+
+    .swatch:hover, .swatch:focus-within { transform: translateY(-2px); }
+
+    .swatch__color { height: 96px; }
+
+    .swatch__info {
+      padding: 0.85rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .swatch__name {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .swatch__token {
+      margin: 0;
+      font-size: 0.78rem;
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      opacity: 0.7;
+    }
+
+    .swatch__copy {
+      margin-top: auto;
+      align-self: flex-start;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+      font-weight: 500;
+      color: var(--color-primary);
+      background: var(--color-bg-yellow);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+    }
+
+    .swatch__copy:hover { background: var(--color-candy-yellow); }
+
+    .swatch__copy:focus-visible {
+      outline: 3px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .ratio-bar {
+      display: flex;
+      height: 48px;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-playful);
+      overflow: hidden;
+      box-shadow: var(--color-shadow-sticker);
+    }
+
+    .ratio-bar__segment {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--color-text);
+      min-width: 0;
+    }
+
+    .ratio-bar__segment--white { background: var(--color-white); width: 50%; }
+    .ratio-bar__segment--primary { background: var(--color-primary); color: var(--color-white); width: 20%; }
+    .ratio-bar__segment--pink { background: var(--color-bubble-pink); width: 10%; }
+    .ratio-bar__segment--yellow { background: var(--color-candy-yellow); width: 10%; }
+    .ratio-bar__segment--mint { background: var(--color-mint); width: 5%; }
+    .ratio-bar__segment--apricot { background: var(--color-apricot); width: 5%; }
+
+    .ratio-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .preview-card {
+      padding: 1.25rem;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-playful);
+      box-shadow: var(--color-shadow-sticker);
+    }
+
+    .preview-card--mint { background: var(--color-bg-mint); }
+    .preview-card--pink { background: var(--color-bg-pink); }
+    .preview-card--yellow { background: var(--color-bg-yellow); }
+
+    .preview-card h3 {
+      margin: 0 0 0.5rem;
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      color: var(--color-primary);
+    }
+
+    .preview-card p { margin: 0 0 1rem; font-size: 0.9rem; }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+    .btn {
+      padding: 0.55rem 1rem;
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      box-shadow: 0 3px 0 rgba(var(--color-primary-rgb), 0.12);
+      transition: transform 0.1s ease;
+    }
+
+    .btn:active { transform: translateY(2px); box-shadow: none; }
+
+    .btn:focus-visible {
+      outline: 3px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .btn--primary { background: var(--color-primary); color: var(--color-white); }
+    .btn--pink { background: var(--color-bubble-pink); color: var(--color-text); }
+    .btn--yellow { background: var(--color-candy-yellow); color: var(--color-text); }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+
+    .tag {
+      padding: 0.25rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-pill);
+    }
+
+    .tag--apricot { background: var(--color-apricot); }
+    .tag--mint { background: var(--color-mint); }
+    .tag--pink { background: var(--color-bubble-pink); }
+
+    .code-panel {
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-playful);
+      background: #1a1f2e;
+      box-shadow: var(--color-shadow-sticker);
+      overflow: hidden;
+    }
+
+    .code-panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      background: #121622;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .code-panel__title { margin: 0; font-size: 0.85rem; font-weight: 500; color: #aab2c8; }
+
+    .code-panel__copy {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+      font-weight: 500;
+      color: #fff;
+      background: var(--color-primary);
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+    }
+
+    .code-panel__copy:focus-visible {
+      outline: 3px solid var(--color-candy-yellow);
+      outline-offset: 2px;
+    }
+
+    .code-panel pre {
+      margin: 0;
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: #e2e8f0;
+      tab-size: 2;
+    }
+
+    .code-panel code { font-family: ui-monospace, "Cascadia Code", "Consolas", monospace; }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      padding: 0.65rem 1.25rem;
+      font-weight: 500;
+      color: var(--color-white);
+      background: var(--color-primary);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 8px 24px rgba(var(--color-primary-rgb), 0.35);
+      transition: transform 0.25s ease;
+      z-index: 50;
+    }
+
+    .toast--visible { transform: translateX(-50%) translateY(0); }
+
+    footer { margin-top: 3rem; text-align: center; font-size: 0.85rem; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <div class="page">
+    <header class="hero" aria-labelledby="hero-title">
+      <div class="hero__dots" aria-hidden="true"></div>
+      <div class="hero__content">
+        <p class="hero__badge">Design System · Color Explorer</p>
+        <h1 id="hero-title">Playful Palette</h1>
+        <p id="hero-desc">White + primary blue <code>#0014C8</code> as anchors. Switch palettes below to compare macaron accent directions.</p>
+      </div>
+    </header>
+
+    <main id="main">
+      <section aria-labelledby="palette-picker-title">
+        <div class="section-header">
+          <h2 id="palette-picker-title">Try a Palette</h2>
+          <p>6 directions — same blue anchor, different accents</p>
+        </div>
+        <div class="palette-grid" id="palette-grid" role="group" aria-label="Palette options"></div>
+      </section>
+
+      <section aria-labelledby="primary-colors">
+        <div class="section-header">
+          <h2 id="primary-colors">Colors</h2>
+          <p id="palette-tagline">Click "Copy Hex" on any swatch</p>
+        </div>
+        <div class="swatch-grid" id="swatch-grid"></div>
+      </section>
+
+      <section aria-labelledby="ratio-title">
+        <div class="section-header">
+          <h2 id="ratio-title">Suggested Ratio</h2>
+          <p>White-first layout with macaron accents</p>
+        </div>
+        <div class="ratio-bar" id="ratio-bar" role="img" aria-label="Palette color ratio"></div>
+        <div class="ratio-legend" id="ratio-legend"></div>
+      </section>
+
+      <section aria-labelledby="preview-title">
+        <div class="section-header">
+          <h2 id="preview-title">Component Preview</h2>
+          <p>See the palette in real UI</p>
+        </div>
+        <div class="preview-grid">
+          <article class="preview-card preview-card--mint">
+            <h3 id="card-1-title">Mint Card</h3>
+            <p id="card-1-desc">Fresh blocks for features, steps, or onboarding.</p>
+            <div class="btn-row">
+              <button class="btn btn--primary" type="button">Primary</button>
+              <button class="btn btn--yellow" type="button">Secondary</button>
+            </div>
+            <div class="tag-row">
+              <span class="tag tag--mint">New</span>
+              <span class="tag tag--apricot">Limited</span>
+            </div>
+          </article>
+          <article class="preview-card preview-card--pink">
+            <h3 id="card-2-title">Pink Card</h3>
+            <p id="card-2-desc">Sweet and playful — great for events or reward modules.</p>
+            <div class="btn-row">
+              <button class="btn btn--pink" type="button">Claim Reward</button>
+            </div>
+            <div class="tag-row">
+              <span class="tag tag--pink">+10 Stars</span>
+              <span class="tag tag--mint">Done</span>
+            </div>
+          </article>
+          <article class="preview-card preview-card--yellow">
+            <h3 id="card-3-title">Yellow Card</h3>
+            <p id="card-3-desc">High-energy callouts for alerts, badges, or achievements.</p>
+            <div class="btn-row">
+              <button class="btn btn--primary" type="button">Take a Look</button>
+            </div>
+            <div class="tag-row">
+              <span class="tag tag--apricot">Level 3</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="css-title">
+        <div class="section-header">
+          <h2 id="css-title">CSS Variables</h2>
+          <p>Copy straight into your project</p>
+        </div>
+        <div class="code-panel">
+          <div class="code-panel__header">
+            <p class="code-panel__title">:root</p>
+            <button class="code-panel__copy" type="button" id="copy-css">Copy All</button>
+          </div>
+          <pre><code id="css-vars"></code></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Playful Palette · 6 macaron directions on white + #0014C8</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const PRIMARY = { hex: "#0014c8", rgb: "0, 20, 200" };
+    const TEXT = { hex: "#2d3448", rgb: "45, 52, 72" };
+
+    const palettes = {
+      macaron: {
+        id: "macaron",
+        name: "Macaron Classic",
+        desc: "Soft pink, lemon, mint, peach",
+        tagline: "Balanced sweetness — the original direction",
+        accents: [
+          { key: "bubble-pink", name: "Bubble Pink", hex: "#ff8fab", rgb: "255, 143, 171", bg: "#fff0f4", label: "cards & tags" },
+          { key: "candy-yellow", name: "Candy Yellow", hex: "#ffe66d", rgb: "255, 230, 109", bg: "#fffbe6", label: "highlights & icons" },
+          { key: "mint", name: "Mint", hex: "#7eedd0", rgb: "126, 237, 208", bg: "#eefcf7", label: "section backgrounds" },
+          { key: "apricot", name: "Apricot", hex: "#ffb480", rgb: "255, 180, 128", bg: "#fff4ea", label: "secondary buttons" },
+        ],
+      },
+      candy: {
+        id: "candy",
+        name: "Candy Shop",
+        desc: "Cherry, grape, lime, honey",
+        tagline: "Bold candy counter — louder and punchier",
+        accents: [
+          { key: "bubble-pink", name: "Cherry Pop", hex: "#ff5d8f", rgb: "255, 93, 143", bg: "#fff0f5", label: "cards & tags" },
+          { key: "candy-yellow", name: "Grape Soda", hex: "#c084fc", rgb: "192, 132, 252", bg: "#f5f0ff", label: "highlights & icons" },
+          { key: "mint", name: "Lime Drop", hex: "#bef264", rgb: "190, 242, 100", bg: "#f7fee7", label: "section backgrounds" },
+          { key: "apricot", name: "Honey Gold", hex: "#fbbf24", rgb: "251, 191, 36", bg: "#fffbeb", label: "secondary buttons" },
+        ],
+      },
+      storybook: {
+        id: "storybook",
+        name: "Storybook Dream",
+        desc: "Blush, lilac, seafoam, butter",
+        tagline: "Gentle and dreamy — bedtime-story calm",
+        accents: [
+          { key: "bubble-pink", name: "Blush", hex: "#fda4af", rgb: "253, 164, 175", bg: "#fff1f2", label: "cards & tags" },
+          { key: "candy-yellow", name: "Lilac Mist", hex: "#ddd6fe", rgb: "221, 214, 254", bg: "#f5f3ff", label: "highlights & icons" },
+          { key: "mint", name: "Seafoam", hex: "#99f6e4", rgb: "153, 246, 228", bg: "#ecfdf5", label: "section backgrounds" },
+          { key: "apricot", name: "Butter", hex: "#fde68a", rgb: "253, 230, 138", bg: "#fefce8", label: "secondary buttons" },
+        ],
+      },
+      arcade: {
+        id: "arcade",
+        name: "Arcade Pop",
+        desc: "Hot pink, neon yellow, cyan, tangerine",
+        tagline: "High energy — arcade cabinets and sticker packs",
+        accents: [
+          { key: "bubble-pink", name: "Hot Pink", hex: "#ff49a8", rgb: "255, 73, 168", bg: "#fff0f8", label: "cards & tags" },
+          { key: "candy-yellow", name: "Neon Yellow", hex: "#ffea00", rgb: "255, 234, 0", bg: "#fefce8", label: "highlights & icons" },
+          { key: "mint", name: "Cyan Punch", hex: "#22d3ee", rgb: "34, 211, 238", bg: "#ecfeff", label: "section backgrounds" },
+          { key: "apricot", name: "Tangerine", hex: "#fb923c", rgb: "251, 146, 60", bg: "#fff7ed", label: "secondary buttons" },
+        ],
+      },
+      ocean: {
+        id: "ocean",
+        name: "Ocean Party",
+        desc: "Coral, sky, lagoon, sand",
+        tagline: "Beach playground — pairs naturally with the blue anchor",
+        accents: [
+          { key: "bubble-pink", name: "Coral Reef", hex: "#ff7b72", rgb: "255, 123, 114", bg: "#fff1f0", label: "cards & tags" },
+          { key: "candy-yellow", name: "Sky Splash", hex: "#7dd3fc", rgb: "125, 211, 252", bg: "#f0f9ff", label: "highlights & icons" },
+          { key: "mint", name: "Lagoon", hex: "#6ee7b7", rgb: "110, 231, 183", bg: "#ecfdf5", label: "section backgrounds" },
+          { key: "apricot", name: "Sand Gold", hex: "#fcd34d", rgb: "252, 211, 77", bg: "#fefce8", label: "secondary buttons" },
+        ],
+      },
+      sunset: {
+        id: "sunset",
+        name: "Sunset Play",
+        desc: "Rose, golden, periwinkle, teal",
+        tagline: "Warm golden hour — soft but still playful",
+        accents: [
+          { key: "bubble-pink", name: "Rose Quartz", hex: "#fb7185", rgb: "251, 113, 133", bg: "#fff1f2", label: "cards & tags" },
+          { key: "candy-yellow", name: "Golden Hour", hex: "#fcd34d", rgb: "252, 211, 77", bg: "#fefce8", label: "highlights & icons" },
+          { key: "mint", name: "Periwinkle", hex: "#a5b4fc", rgb: "165, 180, 252", bg: "#eef2ff", label: "section backgrounds" },
+          { key: "apricot", name: "Soft Teal", hex: "#5eead4", rgb: "94, 234, 212", bg: "#ecfdf5", label: "secondary buttons" },
+        ],
+      },
+    };
+
+    let activeId = "macaron";
+    const toast = document.getElementById("toast");
+    let toastTimer;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("toast--visible");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("toast--visible"), 1800);
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Copied ✓");
+      } catch {
+        showToast("Copy failed — select manually");
+      }
+    }
+
+    function cssVarBlock(palette) {
+      const [a1, a2, a3, a4] = palette.accents;
+      return `:root {
+  /* Base */
+  --color-white: #ffffff;
+  --color-text: ${TEXT.hex};
+
+  /* Primary */
+  --color-primary: ${PRIMARY.hex};
+  --color-primary-rgb: ${PRIMARY.rgb};
+
+  /* Accents — ${palette.name} */
+  --color-bubble-pink: ${a1.hex};
+  --color-candy-yellow: ${a2.hex};
+  --color-mint: ${a3.hex};
+  --color-apricot: ${a4.hex};
+
+  /* Soft backgrounds */
+  --color-bg-pink: ${a1.bg};
+  --color-bg-yellow: ${a2.bg};
+  --color-bg-mint: ${a3.bg};
+  --color-bg-apricot: ${a4.bg};
+
+  /* UI helpers */
+  --color-border: rgba(var(--color-primary-rgb), 0.2);
+  --color-shadow-sticker: 0 4px 0 rgba(var(--color-primary-rgb), 0.15);
+  --radius-playful: 16px;
+}`;
+    }
+
+    function applyPalette(id) {
+      activeId = id;
+      const palette = palettes[id];
+      const root = document.documentElement;
+      const [a1, a2, a3, a4] = palette.accents;
+
+      root.style.setProperty("--color-bubble-pink", a1.hex);
+      root.style.setProperty("--color-candy-yellow", a2.hex);
+      root.style.setProperty("--color-mint", a3.hex);
+      root.style.setProperty("--color-apricot", a4.hex);
+      root.style.setProperty("--color-bg-pink", a1.bg);
+      root.style.setProperty("--color-bg-yellow", a2.bg);
+      root.style.setProperty("--color-bg-mint", a3.bg);
+      root.style.setProperty("--color-bg-apricot", a4.bg);
+
+      document.getElementById("hero-title").textContent = palette.name;
+      document.getElementById("hero-desc").innerHTML =
+        `White + primary blue <code>#0014C8</code> anchored with ${a1.name.toLowerCase()}, ${a2.name.toLowerCase()}, ${a3.name.toLowerCase()}, and ${a4.name.toLowerCase()}. ${palette.tagline}.`;
+      document.getElementById("palette-tagline").textContent = palette.tagline;
+
+      document.getElementById("card-1-title").textContent = `${a3.name} Card`;
+      document.getElementById("card-2-title").textContent = `${a1.name} Card`;
+      document.getElementById("card-3-title").textContent = `${a2.name} Card`;
+
+      document.getElementById("ratio-bar").innerHTML = `
+        <span class="ratio-bar__segment ratio-bar__segment--white">50%</span>
+        <span class="ratio-bar__segment ratio-bar__segment--primary">20%</span>
+        <span class="ratio-bar__segment ratio-bar__segment--pink">10%</span>
+        <span class="ratio-bar__segment ratio-bar__segment--yellow">10%</span>
+        <span class="ratio-bar__segment ratio-bar__segment--mint">5%</span>
+        <span class="ratio-bar__segment ratio-bar__segment--apricot">5%</span>`;
+      document.getElementById("ratio-bar").setAttribute(
+        "aria-label",
+        `Ratio: white 50%, primary 20%, ${a1.name} 10%, ${a2.name} 10%, ${a3.name} 5%, ${a4.name} 5%`
+      );
+
+      document.getElementById("ratio-legend").innerHTML = `
+        <span>⬜ White · backgrounds</span>
+        <span>🔵 Primary · headings & main buttons</span>
+        <span>🎨 ${a1.name} · ${a1.label}</span>
+        <span>🎨 ${a2.name} · ${a2.label}</span>
+        <span>🎨 ${a3.name} · ${a3.label}</span>
+        <span>🎨 ${a4.name} · ${a4.label}</span>`;
+
+      document.getElementById("css-vars").textContent = cssVarBlock(palette);
+      renderSwatches(palette);
+      renderPicker();
+    }
+
+    function renderSwatches(palette) {
+      const grid = document.getElementById("swatch-grid");
+      grid.replaceChildren();
+
+      const swatches = [
+        { name: "Primary Blue", token: "--color-primary", ...PRIMARY },
+        ...palette.accents.map((a) => ({
+          name: a.name,
+          token: `--color-${a.key}`,
+          hex: a.hex,
+          rgb: a.rgb,
+        })),
+        { name: "Text", token: "--color-text", ...TEXT },
+        ...palette.accents.map((a) => ({
+          name: `${a.name} BG`,
+          token: `--color-bg-${a.key === "bubble-pink" ? "pink" : a.key === "candy-yellow" ? "yellow" : a.key === "mint" ? "mint" : "apricot"}`,
+          hex: a.bg,
+          rgb: "tint",
+        })),
+      ];
+
+      swatches.forEach((color) => {
+        const article = document.createElement("article");
+        article.className = "swatch";
+        article.innerHTML = `
+          <div class="swatch__color" style="background:${color.hex}" aria-hidden="true"></div>
+          <div class="swatch__info">
+            <p class="swatch__name">${color.name}</p>
+            <p class="swatch__token">${color.token}</p>
+            <p class="swatch__token">${color.hex}${color.rgb !== "tint" ? ` · rgb(${color.rgb})` : ""}</p>
+            <button class="swatch__copy" type="button" aria-label="Copy ${color.name} hex ${color.hex}">Copy Hex</button>
+          </div>`;
+        article.querySelector(".swatch__copy").addEventListener("click", () => copyText(color.hex));
+        grid.appendChild(article);
+      });
+    }
+
+    function renderPicker() {
+      const grid = document.getElementById("palette-grid");
+      grid.replaceChildren();
+
+      Object.values(palettes).forEach((palette) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "palette-option";
+        btn.setAttribute("aria-pressed", palette.id === activeId ? "true" : "false");
+        btn.innerHTML = `
+          <div class="palette-option__dots" aria-hidden="true">
+            ${palette.accents.map((a) => `<span class="palette-option__dot" style="background:${a.hex}"></span>`).join("")}
+          </div>
+          <p class="palette-option__name">${palette.name}</p>
+          <p class="palette-option__desc">${palette.desc}</p>`;
+        btn.addEventListener("click", () => applyPalette(palette.id));
+        grid.appendChild(btn);
+      });
+    }
+
+    document.getElementById("copy-css").addEventListener("click", () => {
+      copyText(document.getElementById("css-vars").textContent);
+    });
+
+    applyPalette(activeId);
+  </script>
+</body>
+</html>
