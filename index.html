@@ -92,12 +92,13 @@
        heading now shows the source casing so "Welcome to family day"
        renders with the W capitalised while the rest stays lowercase. */
   }
-  .panel-text h2 {
-    margin: 14px 0 0;
+  .mode-prompt {
+    margin: 0;
     font-size: clamp(13px, 1.0vw, 18px);
     font-weight: 400;
     letter-spacing: 1.8px;
     opacity: 0.9;
+    text-align: center;
   }
 
   .modes {
@@ -105,9 +106,9 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
-    /* margin-top auto pushes .modes to the bottom of the panel,
-       right above the video. .panel-video no longer carries the
-       margin-top auto (it sits naturally under .modes now). */
+    /* margin-top auto pushes the mode prompt + cards to the bottom of
+       the panel, right above the video. .panel-video no longer carries
+       the margin-top auto (it sits naturally under .modes now). */
     margin-top: auto;
   }
   .mode-card {
@@ -270,8 +271,9 @@
 
   <div class="panel-text">
     <h1>Welcome to family day</h1>
-    <h2>Please select your mode</h2>
   </div>
+
+  <h2 class="mode-prompt">Please select your mode</h2>
 
   <div class="modes">
     <button class="mode-card" data-mode="single" type="button">
