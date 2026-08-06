@@ -3,10 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>SLB 100 Family Day — Game Page</title>
 <!-- Preload SLBSans Regular so the first paint uses the brand typeface
      instead of falling back to the system font. Saves a layout shift. -->
-<link rel="preload" href="fonts/SLBSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/SLBSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <style>
   /* SLBSans — Schlumberger's brand sans (fetched locally because the
      slb.com CDN does not send CORS headers, so cross-origin @font-face
@@ -18,14 +21,14 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url('fonts/SLBSans-Regular.woff2') format('woff2');
+    src: url('assets/fonts/SLBSans-Regular.woff2') format('woff2');
   }
   @font-face {
     font-family: 'SLBSans';
     font-style: normal;
     font-weight: 500 700;
     font-display: swap;
-    src: url('fonts/SLBSans-Bold.woff2') format('woff2');
+    src: url('assets/fonts/SLBSans-Bold.woff2') format('woff2');
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #fff;
@@ -81,6 +84,9 @@
     align-items: center;
     gap: 12px;
     text-align: center;
+    /* margin-top auto anchors h1 to the bottom of the panel so the
+       whole text block (h1 + h2) sits just above the mode cards. */
+    margin-top: auto;
   }
   .panel-text h1 {
     margin: 0;
@@ -88,16 +94,16 @@
     font-weight: 600;
     letter-spacing: 0.3px;
     line-height: 1.2;
-    /* text-transform removed in style/welcome-cap-modes-above-video:
-       heading now shows the source casing so "Welcome to family day"
-       renders with the W capitalised while the rest stays lowercase. */
+    /* heading shows source casing — "Welcome to family day" renders
+       with the W capitalised while the rest stays lowercase. */
   }
-  .panel-text h2 {
-    margin: 14px 0 0;
+  .mode-prompt {
+    margin: 0;
     font-size: clamp(13px, 1.0vw, 18px);
     font-weight: 400;
     letter-spacing: 1.8px;
     opacity: 0.9;
+    text-align: center;
   }
 
   .modes {
@@ -105,10 +111,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
-    /* margin-top auto pushes .modes to the bottom of the panel,
-       right above the video. .panel-video no longer carries the
-       margin-top auto (it sits naturally under .modes now). */
-    margin-top: auto;
   }
   .mode-card {
     display: flex;
@@ -147,9 +149,6 @@
     width: 100%;
     display: flex;
     justify-content: center;
-    /* margin-top auto removed in style/welcome-cap-modes-above-video:
-       .modes now owns the bottom-anchoring margin so the mode cards
-       sit directly above the video instead of the heading. */
   }
   #slb-video {
     display: block;
@@ -270,8 +269,9 @@
 
   <div class="panel-text">
     <h1>Welcome to family day</h1>
-    <h2>Please select your mode</h2>
   </div>
+
+  <h2 class="mode-prompt">Please select your mode</h2>
 
   <div class="modes">
     <button class="mode-card" data-mode="single" type="button">
@@ -661,7 +661,7 @@ function applyModel(gltf) {
    is true — bytes received so far — paired with an indeterminate
    slide bar so motion always tells the user something is loading. */
 async function loadModel() {
-  const url = 'slb-style-oil-rig.glb';
+  const url = 'assets/models/slb-style-oil-rig.glb';
   loaderStatus.textContent = 'Loading… 0 KB';
   loaderBarWrap.classList.add('indeterminate');  // bar just slides L↔R
 

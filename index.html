@@ -9,7 +9,7 @@
 <title>SLB 100 Family Day — Game Page</title>
 <!-- Preload SLBSans Regular so the first paint uses the brand typeface
      instead of falling back to the system font. Saves a layout shift. -->
-<link rel="preload" href="fonts/SLBSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/SLBSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <style>
   /* SLBSans — Schlumberger's brand sans (fetched locally because the
      slb.com CDN does not send CORS headers, so cross-origin @font-face
@@ -21,14 +21,14 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url('fonts/SLBSans-Regular.woff2') format('woff2');
+    src: url('assets/fonts/SLBSans-Regular.woff2') format('woff2');
   }
   @font-face {
     font-family: 'SLBSans';
     font-style: normal;
     font-weight: 500 700;
     font-display: swap;
-    src: url('fonts/SLBSans-Bold.woff2') format('woff2');
+    src: url('assets/fonts/SLBSans-Bold.woff2') format('woff2');
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #fff;
@@ -661,7 +661,7 @@ function applyModel(gltf) {
    is true — bytes received so far — paired with an indeterminate
    slide bar so motion always tells the user something is loading. */
 async function loadModel() {
-  const url = 'slb-style-oil-rig.glb';
+  const url = 'assets/models/slb-style-oil-rig.glb';
   loaderStatus.textContent = 'Loading… 0 KB';
   loaderBarWrap.classList.add('indeterminate');  // bar just slides L↔R
 

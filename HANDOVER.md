@@ -17,13 +17,20 @@ that matters.
 ## Repo layout
 ```
 SLB100FamilyDay/
-├── index.html             ← mirror of game.html (added 9cf8356 — GitHub
-│                            Pages serves whatever is index.html; without
-│                            it, README.md would render as the landing page)
-├── game.html              ← THE WHOLE APP (single source of truth; ~760 lines,
-│                            all HTML + CSS + ES-module JS inline)
-├── palette.html           ← macaron palette explorer (6 accent directions on #0014C8)
-├── slb-style-oil-rig.glb  ← 3D model (~26 MB) — referenced by loader
+├── index.html              ← mirror of game.html (added 9cf8356 — GitHub
+│                             Pages serves whatever is index.html; without
+│                             it, README.md would render as the landing page)
+├── game.html               ← THE WHOLE APP (single source of truth; ~770 lines,
+│                             all HTML + CSS + ES-module JS inline)
+├── palette.html            ← macaron palette explorer (6 accent directions on #0014C8)
+├── assets/
+│   ├── fonts/
+│   │   ├── SLBSans-Regular.woff2
+│   │   └── SLBSans-Bold.woff2
+│   └── models/
+│       └── slb-style-oil-rig.glb    ← 3D model (~26 MB) — referenced by loader
+├── tools/
+│   └── glb-editor.html              ← standalone GLB color editor (orphaned, not linked)
 ├── HANDOVER.md            ← this file
 ├── README.md              ← stale (still describes pre-GLB step 1) — read HANDOVER
 └── (no build step, no npm, no node_modules — pure static)
@@ -177,8 +184,8 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
   `/tmp/check.mjs` and run `node --check /tmp/check.mjs`. No imports
   needed for syntax-only validation.
 - Useful probes for understanding what GitHub Pages actually returns:
-  - Headers in general: `curl -sI https://amory0709.github.io/SLB100FamilyDay/slb-style-oil-rig.glb`
-  - Range probe: `curl -sI -H 'Range: bytes=0-0' …/slb-style-oil-rig.glb`
+  - Headers in general: `curl -sI https://amory0709.github.io/SLB100FamilyDay/assets/models/slb-style-oil-rig.glb`
+  - Range probe: `curl -sI -H 'Range: bytes=0-0' …/assets/models/slb-style-oil-rig.glb`
   - These were key to debugging the loader (see gotcha #8 above).
 
 ## Recent commits worth knowing about
@@ -257,7 +264,7 @@ dea6668 style: rotate model 180° around Y — flip helipad to view-left  (WRONG
   the rule above holds.
 - **Font stack (from `d599178`)**: body and all visible text now use
   `SLBSans` (no space, lowercase `b` — that's the actual @font-face
-  family name). Two weights ship as `fonts/*.woff2`:
+  family name). Two weights ship as `assets/fonts/*.woff2`:
   - Regular (CSS 400) + Bold (CSS 500–700). Covers every weight value
     in the current page.
   - Other weights (Book/Light/Medium + italics) are NOT shipped.
