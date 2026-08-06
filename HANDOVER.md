@@ -43,7 +43,7 @@ SLB100FamilyDay/
 - Background: `#d1d1d1` (gray, chosen by user)
 - No bundler, no transpiler, no service worker
 
-## Current visual state (HEAD = `cb57add`)
+## Current visual state (HEAD = `4213ab3`)
 | Layer | Where | Z-index |
 |---|---|---|
 | **`#loader`** (SLB-blue full-viewport overlay) | covers entire viewport until GLB stream completes, then fades 500 ms and DOM-removed | 10000 |
@@ -183,8 +183,11 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
 
 ## Recent commits worth knowing about
 ```
+4213ab3 style: anchor h1 to the bottom so the whole text block sits above the mode cards   ← HEAD
+8796899 fix: anchor the mode prompt itself with margin-top auto
+041b3aa fix: add no-cache meta tags so users see the latest deployment
+8e6fada style: move 'Please select your mode' prompt above the mode cards
 69b6e53 style: capitalise Welcome, push the heading up, anchor modes above video
-8e6fada style: move 'Please select your mode' prompt above the mode cards   ← HEAD
 bd17bf4 style: bump welcome heading size and add breathing room above mode prompt
 d599178 feat: load SLBSans brand typeface via local @font-face
 52a4b63 merge: bring remote main forward — GitHub web edits + my SLB blue work
