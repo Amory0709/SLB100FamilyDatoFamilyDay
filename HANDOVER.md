@@ -183,7 +183,8 @@ After GLB loads, loader fades → P1 is restored then auto-rotate kicks in (defa
 
 ## Recent commits worth knowing about
 ```
-69b6e53 style: capitalise Welcome, push the heading up, anchor modes above video   ← HEAD
+69b6e53 style: capitalise Welcome, push the heading up, anchor modes above video
+8e6fada style: move 'Please select your mode' prompt above the mode cards   ← HEAD
 bd17bf4 style: bump welcome heading size and add breathing room above mode prompt
 d599178 feat: load SLBSans brand typeface via local @font-face
 52a4b63 merge: bring remote main forward — GitHub web edits + my SLB blue work
