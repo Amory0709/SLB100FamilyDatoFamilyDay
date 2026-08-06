@@ -96,12 +96,14 @@
        renders with the W capitalised while the rest stays lowercase. */
   }
   .mode-prompt {
-    margin: 0;
+    margin: auto 0 0;
     font-size: clamp(13px, 1.0vw, 18px);
     font-weight: 400;
     letter-spacing: 1.8px;
     opacity: 0.9;
     text-align: center;
+    /* margin-top auto pushes the prompt down so it sits just above
+       the mode cards. .modes and .panel-video stack naturally below. */
   }
 
   .modes {
@@ -109,10 +111,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
-    /* margin-top auto pushes the mode prompt + cards to the bottom of
-       the panel, right above the video. .panel-video no longer carries
-       the margin-top auto (it sits naturally under .modes now). */
-    margin-top: auto;
   }
   .mode-card {
     display: flex;
